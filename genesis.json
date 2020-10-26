@@ -1,0 +1,734 @@
+{
+  "initial_timestamp": "2019-07-11T23:59:50",
+  "max_core_supply": "1000000000000000",
+  "initial_parameters": {
+    "current_fees": {
+      "parameters": [[
+          0,{
+            "fee": 10,
+            "price_per_kbyte": 100
+          }
+        ],[
+          1,{
+            "fee": 50
+          }
+        ],[
+          2,{
+            "fee": 0
+          }
+        ],[
+          3,{
+            "fee": 10
+          }
+        ],[
+          4,{
+            "fee": 0
+          }
+        ],[
+          5,{
+            "basic_fee": 10,
+            "premium_fee": 20000,
+            "price_per_kbyte": 10
+          }
+        ],[
+          6,{
+            "fee": 100,
+            "price_per_kbyte": 10
+          }
+        ],[
+          7,{
+            "fee": 300000
+          }
+        ],[
+          8,{
+            "membership_annual_fee": 20000,
+            "membership_lifetime_fee": 100000
+          }
+        ],[
+          9,{
+            "fee": 5000
+          }
+        ],[
+          10,{
+            "symbol3": 5000000,
+            "symbol4": 3000000,
+            "long_symbol": 50000,
+            "price_per_kbyte": 10
+          }
+        ],[
+          11,{
+            "fee": 5000,
+            "price_per_kbyte": 10
+          }
+        ],[
+          12,{
+            "fee": 5000
+          }
+        ],[
+          13,{
+            "fee": 5000
+          }
+        ],[
+          14,{
+            "fee": 100,
+            "price_per_kbyte": 10
+          }
+        ],[
+          15,{
+            "fee": 100
+          }
+        ],[
+          16,{
+            "fee": 10
+          }
+        ],[
+          17,{
+            "fee": 1000
+          }
+        ],[
+          18,{
+            "fee": 5000
+          }
+        ],[
+          19,{
+            "fee": 10
+          }
+        ],[
+          20,{
+            "fee": 10
+          }
+        ],[
+          21,{
+            "fee": 100000000
+          }
+        ],[
+          22,{
+            "fee": 100
+          }
+        ],[
+          23,{
+            "fee": 100,
+            "price_per_kbyte": 10
+          }
+        ],[
+          24,{
+            "fee": 100,
+            "price_per_kbyte": 10
+          }
+        ],[
+          25,{
+            "fee": 10
+          }
+        ],[
+          26,{
+            "fee": 10
+          }
+        ],[
+          27,{
+            "fee": 10
+          }
+        ],[
+          28,{
+            "fee": 200,
+            "price_per_kbyte": 10
+          }
+        ],[
+          29,{
+            "fee": 0
+          }
+        ],[
+          30,{
+            "fee": 1000000000
+          }
+        ],[
+          31,{
+            "fee": 100
+          }
+        ],[
+          32,{
+            "fee": 10
+          }
+        ],[
+          33,{
+            "fee": 35000
+          }
+        ],[
+          34,{
+            "fee": 10
+          }
+        ],[
+          35,{
+            "fee": 200
+          }
+        ],[
+          36,{
+            "fee": 45000
+          }
+        ],[
+          37,{
+            "fee": 10,
+            "price_per_kbyte": 10
+          }
+        ],[
+          38,{
+            "fee": 10
+          }
+        ],[
+          39,{}
+        ],[
+          40,{
+            "fee": 100,
+            "price_per_kbyte": 10
+          }
+        ],[
+          41,{
+            "fee": 50,
+            "price_per_output": 50
+          }
+        ],[
+          42,{
+            "fee": 50,
+            "price_per_output": 50
+          }
+        ],[
+          43,{
+            "fee": 50
+          }
+        ],[
+          44,{}
+        ],[
+          45,{
+            "fee": 100
+          }
+        ],[
+          46,{}
+        ],[
+          47,{
+            "fee": 10
+          }
+        ],[
+          48,{
+            "fee": 100
+          }
+        ],[
+          49,{
+            "fee": 100
+          }
+        ],[
+          50,{
+            "fee": 100
+          }
+        ],[
+          51,{
+            "fee": 100
+          }
+        ],[
+          52,{
+            "fee": 100
+          }
+        ],[
+          53,{
+            "fee": 100
+          }
+        ],[
+          54,{
+            "fee": 10,
+            "price_per_kbyte": 100
+          }
+        ],[
+          55,{
+            "fee": 10,
+            "price_per_kbyte": 100
+          }
+        ],[
+          56,{
+            "fee": 10,
+            "price_per_kbyte": 100
+          }
+        ],[
+          57,{
+            "fee": 100,
+            "price_per_kbyte": 100
+          }
+        ],[
+          58,{
+            "fee": 100,
+            "price_per_kbyte": 100
+          }
+        ],[
+          59,{
+            "fee": 10,
+            "price_per_kbyte": 100
+          }
+        ],[
+          60,{
+            "fee": 100
+          }
+        ],[
+          61,{
+            "fee": 100
+          }
+        ],[
+          62,{
+            "fee": 100
+          }
+        ],[
+          63,{
+            "fee": 100
+          }
+        ],[
+          64,{
+            "fee": 100
+          }
+        ],[
+          65,{
+            "fee": 100
+          }
+        ],[
+          66,{
+            "fee": 100
+          }
+        ],[
+          67,{
+            "fee": 100
+          }
+        ],[
+          68,{
+            "fee": 100
+          }
+        ],[
+          69,{
+            "fee": 5000
+          }
+        ],[
+          70,{
+            "fee": 100
+          }
+        ],[
+          71,{
+            "fee": 100000000
+          }
+        ],[
+          72,{
+            "fee": 100
+          }
+        ]
+      ],
+      "scale": 10000
+    },
+    "block_interval": 10,
+    "maintenance_interval": 86400,
+    "maintenance_skip_slots": 3,
+    "committee_proposal_review_period": 1209600,
+    "maximum_transaction_size": 2048,
+    "maximum_block_size": 2048000000,
+    "maximum_time_until_expiration": 86400,
+    "maximum_proposal_lifetime": 2419200,
+    "maximum_asset_whitelist_authorities": 10,
+    "maximum_asset_feed_publishers": 10,
+    "maximum_miner_count": 1001,
+    "maximum_guard_count": 15,
+    "minimum_guard_count": 7,
+    "maximum_authority_membership": 10,
+    "reserve_percent_of_fee": 2000,
+    "network_percent_of_fee": 2000,
+    "lifetime_referrer_percent_of_fee": 3000,
+    "cashback_vesting_period_seconds": 31536000,
+    "cashback_vesting_threshold": 1000,
+    "count_non_member_votes": true,
+    "allow_non_member_whitelists": false,
+    "miner_pay_per_block": 100,
+    "worker_budget_per_day": 5000000,
+    "max_predicate_opcode": 1,
+    "fee_liquidation_threshold": 1000,
+    "accounts_per_fee_scale": 1000,
+    "account_fee_scale_bitshifts": 4,
+    "max_authority_depth": 2,
+    "min_pay_back_balance": 5000000,
+    "min_pay_back_balance_other_asset": [],
+    "extensions": []
+  },
+  "initial_accounts": [
+    {
+      "name": "senator0",
+      "owner_key": "D5UMdRR6GvT1SjJnLbWYRaXahTNRmYJwo5y8TGZphuYkWYrBrjg",
+      "active_key": "D5UMdRR6GvT1SjJnLbWYRaXahTNRmYJwo5y8TGZphuYkWYrBrjg",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator1",
+      "owner_key": "D6nafz3HUWVTuhXZDYSjFtbJXmLH4CWCTqUAkNY2iP8Y7YVvrcw",
+      "active_key": "D6nafz3HUWVTuhXZDYSjFtbJXmLH4CWCTqUAkNY2iP8Y7YVvrcw",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator2",
+      "owner_key": "D8hPqqqyjHKVqgJiJGneXi6D8QgATzdQG4QQv68frU1bMqWmNPQ",
+      "active_key": "D8hPqqqyjHKVqgJiJGneXi6D8QgATzdQG4QQv68frU1bMqWmNPQ",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator3",
+      "owner_key": "D5xRt7CfpwjJRSwqss1gVT988s79XtCZV9YQa9dgDSV1f54d4ui",
+      "active_key": "D5xRt7CfpwjJRSwqss1gVT988s79XtCZV9YQa9dgDSV1f54d4ui",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator4",
+      "owner_key": "D5FZLZfMip13rHpYsjNKmuzTfbVCihnA7kivhN36As5WWMK3MC2",
+      "active_key": "D5FZLZfMip13rHpYsjNKmuzTfbVCihnA7kivhN36As5WWMK3MC2",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator5",
+      "owner_key": "D5w8hLyGrchHKnXckSKRXhojbYEgWvKeJjjsEz9U8TBXTzjToEX",
+      "active_key": "D5w8hLyGrchHKnXckSKRXhojbYEgWvKeJjjsEz9U8TBXTzjToEX",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator6",
+      "owner_key": "D5Z1b8rZYxwRNrshrX2qyDLBdfATKzrM3rn5yxFVHNVmtLaTWFm",
+      "active_key": "D5Z1b8rZYxwRNrshrX2qyDLBdfATKzrM3rn5yxFVHNVmtLaTWFm",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator7",
+      "owner_key": "D8ek9LASqeajB5JdNnVhYAcRJ127tfokBsDVQyFzkULFQyeAyGP",
+      "active_key": "D8ek9LASqeajB5JdNnVhYAcRJ127tfokBsDVQyFzkULFQyeAyGP",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator8",
+      "owner_key": "D5rLQ3T5ME7gLwiqi1oRSpT9JVEthZ3zzmsPzxcnGnxk6DiXqgE",
+      "active_key": "D5rLQ3T5ME7gLwiqi1oRSpT9JVEthZ3zzmsPzxcnGnxk6DiXqgE",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator9",
+      "owner_key": "D5SJgbdeXGhwevePTUdD8ypEqavWh72fyhZn2fVQuU5fG5icDRU",
+      "active_key": "D5SJgbdeXGhwevePTUdD8ypEqavWh72fyhZn2fVQuU5fG5icDRU",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator10",
+      "owner_key": "D81Qw37P9wGrQ7coYpqMXHEH97KYyhxpGC2oc5wbnFKp6eR8a6P",
+      "active_key": "D81Qw37P9wGrQ7coYpqMXHEH97KYyhxpGC2oc5wbnFKp6eR8a6P",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator11",
+      "owner_key": "D6A7LxoGC7ajgTVsPSW5HbG9js5Jtg28xMewsPh19bDt6B4s9KP",
+      "active_key": "D6A7LxoGC7ajgTVsPSW5HbG9js5Jtg28xMewsPh19bDt6B4s9KP",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator12",
+      "owner_key": "D7fzVWBEiiEVNVKRn7snkdz4KV3KyTEWLffmr3t3vuAuMB7QvKC",
+      "active_key": "D7fzVWBEiiEVNVKRn7snkdz4KV3KyTEWLffmr3t3vuAuMB7QvKC",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator13",
+      "owner_key": "D8JgKWd7mtuBzXubNQEAidgHkFWUekUYn43chpzaDeoVdYodvs1",
+      "active_key": "D8JgKWd7mtuBzXubNQEAidgHkFWUekUYn43chpzaDeoVdYodvs1",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator14",
+      "owner_key": "D6kMjngPN6hesjDx6AHZC9HJ5HdeCZruv3iqWF7QDQDqEAAm5pY",
+      "active_key": "D6kMjngPN6hesjDx6AHZC9HJ5HdeCZruv3iqWF7QDQDqEAAm5pY",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator15",
+      "owner_key": "D8j2J6yebL1btHDM6Zsc4ErMpjogdmkA8gw81QsY3CkaPRV3fEA",
+      "active_key": "D8j2J6yebL1btHDM6Zsc4ErMpjogdmkA8gw81QsY3CkaPRV3fEA",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator16",
+      "owner_key": "D56tiwKWAMqTqdtcipYfiyGZBU8nxZFJL4K5919ocry4d2XTk2Q",
+      "active_key": "D56tiwKWAMqTqdtcipYfiyGZBU8nxZFJL4K5919ocry4d2XTk2Q",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator17",
+      "owner_key": "D575YsWNY7XAcno2HYePVozypLtHx1WnhUHbwSfY7ZXTZp3C4EL",
+      "active_key": "D575YsWNY7XAcno2HYePVozypLtHx1WnhUHbwSfY7ZXTZp3C4EL",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator18",
+      "owner_key": "D73WdKoccTrz1zbiw4jr5DP2WCvRXRMNEihWCbTdaE1LNr5zS7A",
+      "active_key": "D73WdKoccTrz1zbiw4jr5DP2WCvRXRMNEihWCbTdaE1LNr5zS7A",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator19",
+      "owner_key": "D8deYZdnmhDVuc6HyUmxuApdJ9ECMFjT3nJk9JBCSfNCk9636Wm",
+      "active_key": "D8deYZdnmhDVuc6HyUmxuApdJ9ECMFjT3nJk9JBCSfNCk9636Wm",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator20",
+      "owner_key": "D6gLM2oGrGWtRvMsCrAQ64pBzDJFdfyypUP1DnvgerHY2YQ12AZ",
+      "active_key": "D6gLM2oGrGWtRvMsCrAQ64pBzDJFdfyypUP1DnvgerHY2YQ12AZ",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator21",
+      "owner_key": "D6tQVc6MALKRb3MRrzcHhRwdh3WHYRSaKDfrMb1jrmCbLKFeGQh",
+      "active_key": "D6tQVc6MALKRb3MRrzcHhRwdh3WHYRSaKDfrMb1jrmCbLKFeGQh",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator22",
+      "owner_key": "D7r4zxxptDnavEYdsnWXogNopx5rq1echM1AwRxWHo82MDX8MGY",
+      "active_key": "D7r4zxxptDnavEYdsnWXogNopx5rq1echM1AwRxWHo82MDX8MGY",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator23",
+      "owner_key": "D6Uqg4vyByqo6YMts99p7mx1RdLJ1Mq399wiaPW9oWM1TpkPVeq",
+      "active_key": "D6Uqg4vyByqo6YMts99p7mx1RdLJ1Mq399wiaPW9oWM1TpkPVeq",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "senator24",
+      "owner_key": "D5aKSAkveMQfhRCiiKhehuUcPT6XhMSFztwWUxgsmvhUQuaZahd",
+      "active_key": "D5aKSAkveMQfhRCiiKhehuUcPT6XhMSFztwWUxgsmvhUQuaZahd",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director0",
+      "owner_key": "D6oPx4sMdsaDscjdQgHqJdwwP7DwHQN7zfoYo6zHY1PQiH4scKn",
+      "active_key": "D6oPx4sMdsaDscjdQgHqJdwwP7DwHQN7zfoYo6zHY1PQiH4scKn",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director1",
+      "owner_key": "D5iZUc7881X2bVLSdg9pBTNLjuTrhbYiGnD3qyoP58VKx52FTsU",
+      "active_key": "D5iZUc7881X2bVLSdg9pBTNLjuTrhbYiGnD3qyoP58VKx52FTsU",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director2",
+      "owner_key": "D7rM8iG6fD8v9dVeLwvMyLeehRRvq3Hc59AHhMmUZX662iUGG2N",
+      "active_key": "D7rM8iG6fD8v9dVeLwvMyLeehRRvq3Hc59AHhMmUZX662iUGG2N",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director3",
+      "owner_key": "D6bt4WcV14KrR6NzhDsbJsHVHqrEuFLZr8pi2Jv1uiAVzut66k3",
+      "active_key": "D6bt4WcV14KrR6NzhDsbJsHVHqrEuFLZr8pi2Jv1uiAVzut66k3",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director4",
+      "owner_key": "D58h1fXTXgQ4seM6ePMjXNL2pgE952S7xLrrQfjqrkWyqRqqXaE",
+      "active_key": "D58h1fXTXgQ4seM6ePMjXNL2pgE952S7xLrrQfjqrkWyqRqqXaE",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director5",
+      "owner_key": "D6aCvAcs6VZ2ywML98G9oP6ny1mR1XYaSfMAPQa1R4kADCHHRyX",
+      "active_key": "D6aCvAcs6VZ2ywML98G9oP6ny1mR1XYaSfMAPQa1R4kADCHHRyX",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director6",
+      "owner_key": "D67jEKC92rWngaGeTtxfuX1ANTUc8T6KozamW3ywRMgYSvFJx2n",
+      "active_key": "D67jEKC92rWngaGeTtxfuX1ANTUc8T6KozamW3ywRMgYSvFJx2n",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director7",
+      "owner_key": "D7oM3YEJ8g7viwMex6BQcJATgppBMW9Aftng29SFvAMvR2VkENs",
+      "active_key": "D7oM3YEJ8g7viwMex6BQcJATgppBMW9Aftng29SFvAMvR2VkENs",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director8",
+      "owner_key": "D5gXoeoE4Sdt93KzzfCbbkL99vejJjSf9f7r242XftNxVt9RfM9",
+      "active_key": "D5gXoeoE4Sdt93KzzfCbbkL99vejJjSf9f7r242XftNxVt9RfM9",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director9",
+      "owner_key": "D81DWVE9sZvAcASig3ToSHAJn5MEJzPqoYyFVoSSkuikUDUp5W3",
+      "active_key": "D81DWVE9sZvAcASig3ToSHAJn5MEJzPqoYyFVoSSkuikUDUp5W3",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director10",
+      "owner_key": "D6foV3HCcivfuFr5aGo7Y9qXR96YaC82HmxDcCvQuHAo8qtEwfp",
+      "active_key": "D6foV3HCcivfuFr5aGo7Y9qXR96YaC82HmxDcCvQuHAo8qtEwfp",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director11",
+      "owner_key": "D5FKTEoWDPr75TvbuH7tQTwjH9TaA3PaveZWSUR7JZUi7kjQ1So",
+      "active_key": "D5FKTEoWDPr75TvbuH7tQTwjH9TaA3PaveZWSUR7JZUi7kjQ1So",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director12",
+      "owner_key": "D7wCLxrcNKF2cE1KtZPVWmGS4FmhEbX4zwLzhFxPpu2v9Kygzjo",
+      "active_key": "D7wCLxrcNKF2cE1KtZPVWmGS4FmhEbX4zwLzhFxPpu2v9Kygzjo",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director13",
+      "owner_key": "D5YFyxjfWPwM5B9EtDSPypZKbTfvdbj2AEUFMYsSjc335eGJXTr",
+      "active_key": "D5YFyxjfWPwM5B9EtDSPypZKbTfvdbj2AEUFMYsSjc335eGJXTr",
+      "is_lifetime_member": true
+    },
+    {
+      "name": "director14",
+      "owner_key": "D7D4mnDVGNy6NPbHE6HJoe4zpunGRkEAUfSLwf1uBk5hGbHWc2y",
+      "active_key": "D7D4mnDVGNy6NPbHE6HJoe4zpunGRkEAUfSLwf1uBk5hGbHWc2y",
+      "is_lifetime_member": true
+    }
+  ],
+  "initial_assets": [],
+  "initial_balances": [{
+      "owner": "DAQ2LP5DzXr1JMVWUEqQYfgniFPqjwMeNj",
+      "asset_symbol": "DFD",
+      "amount": "840000000000"
+    }
+  ],
+  "initial_vesting_balances": [],
+  "initial_active_miners": 25,
+  "initial_miner_candidates": [{
+      "owner_name": "senator0",
+      "block_signing_key": "D5UMdRR6GvT1SjJnLbWYRaXahTNRmYJwo5y8TGZphuYkWYrBrjg"
+    },{
+      "owner_name": "senator1",
+      "block_signing_key": "D6nafz3HUWVTuhXZDYSjFtbJXmLH4CWCTqUAkNY2iP8Y7YVvrcw"
+    },{
+      "owner_name": "senator2",
+      "block_signing_key": "D8hPqqqyjHKVqgJiJGneXi6D8QgATzdQG4QQv68frU1bMqWmNPQ"
+    },{
+      "owner_name": "senator3",
+      "block_signing_key": "D5xRt7CfpwjJRSwqss1gVT988s79XtCZV9YQa9dgDSV1f54d4ui"
+    },{
+      "owner_name": "senator4",
+      "block_signing_key": "D5FZLZfMip13rHpYsjNKmuzTfbVCihnA7kivhN36As5WWMK3MC2"
+    },{
+      "owner_name": "senator5",
+      "block_signing_key": "D5w8hLyGrchHKnXckSKRXhojbYEgWvKeJjjsEz9U8TBXTzjToEX"
+    },{
+      "owner_name": "senator6",
+      "block_signing_key": "D5Z1b8rZYxwRNrshrX2qyDLBdfATKzrM3rn5yxFVHNVmtLaTWFm"
+    },{
+      "owner_name": "senator7",
+      "block_signing_key": "D8ek9LASqeajB5JdNnVhYAcRJ127tfokBsDVQyFzkULFQyeAyGP"
+    },{
+      "owner_name": "senator8",
+      "block_signing_key": "D5rLQ3T5ME7gLwiqi1oRSpT9JVEthZ3zzmsPzxcnGnxk6DiXqgE"
+    },{
+      "owner_name": "senator9",
+      "block_signing_key": "D5SJgbdeXGhwevePTUdD8ypEqavWh72fyhZn2fVQuU5fG5icDRU"
+    },{
+      "owner_name": "senator10",
+      "block_signing_key": "D81Qw37P9wGrQ7coYpqMXHEH97KYyhxpGC2oc5wbnFKp6eR8a6P"
+    },{
+      "owner_name": "senator11",
+      "block_signing_key": "D6A7LxoGC7ajgTVsPSW5HbG9js5Jtg28xMewsPh19bDt6B4s9KP"
+    },{
+      "owner_name": "senator12",
+      "block_signing_key": "D7fzVWBEiiEVNVKRn7snkdz4KV3KyTEWLffmr3t3vuAuMB7QvKC"
+    },{
+      "owner_name": "senator13",
+      "block_signing_key": "D8JgKWd7mtuBzXubNQEAidgHkFWUekUYn43chpzaDeoVdYodvs1"
+    },{
+      "owner_name": "senator14",
+      "block_signing_key": "D6kMjngPN6hesjDx6AHZC9HJ5HdeCZruv3iqWF7QDQDqEAAm5pY"
+    },{
+      "owner_name": "senator15",
+      "block_signing_key": "D8j2J6yebL1btHDM6Zsc4ErMpjogdmkA8gw81QsY3CkaPRV3fEA"
+    },{
+      "owner_name": "senator16",
+      "block_signing_key": "D56tiwKWAMqTqdtcipYfiyGZBU8nxZFJL4K5919ocry4d2XTk2Q"
+    },{
+      "owner_name": "senator17",
+      "block_signing_key": "D575YsWNY7XAcno2HYePVozypLtHx1WnhUHbwSfY7ZXTZp3C4EL"
+    },{
+      "owner_name": "senator18",
+      "block_signing_key": "D73WdKoccTrz1zbiw4jr5DP2WCvRXRMNEihWCbTdaE1LNr5zS7A"
+    },{
+      "owner_name": "senator19",
+      "block_signing_key": "D8deYZdnmhDVuc6HyUmxuApdJ9ECMFjT3nJk9JBCSfNCk9636Wm"
+    },{
+      "owner_name": "senator20",
+      "block_signing_key": "D6gLM2oGrGWtRvMsCrAQ64pBzDJFdfyypUP1DnvgerHY2YQ12AZ"
+    },{
+      "owner_name": "senator21",
+      "block_signing_key": "D6tQVc6MALKRb3MRrzcHhRwdh3WHYRSaKDfrMb1jrmCbLKFeGQh"
+    },{
+      "owner_name": "senator22",
+      "block_signing_key": "D7r4zxxptDnavEYdsnWXogNopx5rq1echM1AwRxWHo82MDX8MGY"
+    },{
+      "owner_name": "senator23",
+      "block_signing_key": "D6Uqg4vyByqo6YMts99p7mx1RdLJ1Mq399wiaPW9oWM1TpkPVeq"
+    },{
+      "owner_name": "senator24",
+      "block_signing_key": "D5aKSAkveMQfhRCiiKhehuUcPT6XhMSFztwWUxgsmvhUQuaZahd"
+    }
+  ],
+  "initial_guard_candidates": [{
+      "owner_name": "director0",
+      "type": "PERMANENT"
+    },{
+      "owner_name": "director1",
+      "type": "PERMANENT"
+    },{
+      "owner_name": "director2",
+      "type": "PERMANENT"
+    },{
+      "owner_name": "director3",
+      "type": "PERMANENT"
+    },{
+      "owner_name": "director4",
+      "type": "PERMANENT"
+    },{
+      "owner_name": "director5",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director6",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director7",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director8",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director9",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director10",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director11",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director12",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director13",
+      "type": "EXTERNAL"
+    },{
+      "owner_name": "director14",
+      "type": "EXTERNAL"
+    }
+  ],
+  "initial_worker_candidates": [],
+  "initial_chain_id": "aa34045518f1469a28fa4578240d5f039afa9959c0b95ce3b39674efa691fb21",
+  "immutable_parameters": {
+    "min_guard_count": 7,
+    "min_miner_count": 25,
+    "num_special_accounts": 0,
+    "num_special_assets": 0
+  }
+}
