@@ -31,6 +31,7 @@
     <ClCompile Include="src\cbor_diff\helper.cpp" />
     <ClCompile Include="src\native_contract\native_exchange_contract.cpp" />
     <ClCompile Include="src\native_contract\native_token_contract.cpp" />
+    <ClCompile Include="src\native_contract\native_uniswap_contract.cpp" />
     <ClCompile Include="src\safenumber\safenumber.cpp" />
     <ClCompile Include="src\uvm\json_reader.cpp" />
     <ClCompile Include="src\uvm\ljsonlib2.cpp" />
@@ -81,6 +82,9 @@
     <ClCompile Include="src\uvm\lutf8lib.cpp" />
     <ClCompile Include="src\uvm\lvm.cpp" />
     <ClCompile Include="src\uvm\lzio.cpp" />
+    <ClCompile Include="vmgc\src\gcobject.cpp" />
+    <ClCompile Include="vmgc\src\gcstate.cpp" />
+    <ClCompile Include="vmgc\src\vmgc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\cborcpp\cbor.h" />
@@ -99,6 +103,7 @@
     <ClInclude Include="include\cbor_diff\helper.h" />
     <ClInclude Include="include\native_contract\native_exchange_contract.h" />
     <ClInclude Include="include\native_contract\native_token_contract.h" />
+    <ClInclude Include="include\native_contract\native_uniswap_contract.h" />
     <ClInclude Include="include\safenumber\safenumber.h" />
     <ClInclude Include="include\uvm\exceptions.h" />
     <ClInclude Include="include\uvm\json_reader.h" />
@@ -139,6 +144,10 @@
     <ClInclude Include="include\uvm\lundump.h" />
     <ClInclude Include="include\uvm\lvm.h" />
     <ClInclude Include="include\uvm\lzio.h" />
+    <ClInclude Include="vmgc\include\vmgc\exceptions.h" />
+    <ClInclude Include="vmgc\include\vmgc\gcobject.h" />
+    <ClInclude Include="vmgc\include\vmgc\gcstate.h" />
+    <ClInclude Include="vmgc\include\vmgc\vmgc.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -187,7 +196,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\OpenSSL.x64\include;$(SolutionDir)\..\jsondiff-cpp\jsondiff-cpp\include;$(SolutionDir)\..\fc\include;$(SolutionDir)\include;$(SolutionDir)\..\boost_1.55.x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vmgc\include;$(SolutionDir)\include;$(SolutionDir)\..\OpenSSL.x64\include;$(SolutionDir)\..\jsondiff-cpp\jsondiff-cpp\include;$(SolutionDir)\..\fc\include;$(SolutionDir)\..\boost_1.55.x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -196,14 +205,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Link>
-      <AdditionalDependencies>libboost_iostreams-vc120-mt-1_55.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)\..\boost_1.55.x64\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-    </Link>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\OpenSSL.x64\include;$(SolutionDir)\include;$(SolutionDir)\..\jsondiff-cpp\jsondiff-cpp\include;$(SolutionDir)\..\fc\include;$(SolutionDir)\..\boost_1.55.x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\vmgc\include;$(SolutionDir)\include;$(SolutionDir)\..\OpenSSL.x64\include;$(SolutionDir)\..\jsondiff-cpp\jsondiff-cpp\include;$(SolutionDir)\..\fc\include;$(SolutionDir)\..\boost_1.55.x64;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)\..\boost_1.55.x64\stage\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libboost_iostreams-vc120-mt-gd-1_55.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -79,7 +79,8 @@ namespace graphene { namespace chain {
             skip_validate               = 1 << 11, ///< used prior to checkpoint, skips validate() call on transaction
             check_gas_price             = 1 << 12,
 			throw_over_limit            = 1 << 13,
-			skip_contract_exec          = 1 << 14
+			skip_contract_exec          = 1 << 14,
+			skip_contract_db_check      = 1 << 15
          };
 
          /**
@@ -320,6 +321,7 @@ namespace graphene { namespace chain {
 
 		 //////contract//////
 		 StorageDataType get_contract_storage(const address& contract_id, const string& name);
+                 std::map<std::string, StorageDataType> get_contract_all_storages(const address& contract_id);
 		 optional<contract_storage_object>  get_contract_storage_object(const address& contract_id, const string& name);
 		 void set_contract_storage(const address& contract_id, const string& name, const StorageDataType &value);
 		 void set_contract_storage_in_contract(const contract_object& contract, const string& name, const StorageDataType& value);
@@ -345,7 +347,8 @@ namespace graphene { namespace chain {
 
 		 std::vector<transaction_id_type> get_contract_related_transactions(const address& contract_id,uint64_t start,uint64_t end);
          vector<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id)const ;
-
+		 optional<contract_invoke_result_object> get_contract_invoke_result(const transaction_id_type& trx_id,const uint32_t op_num)const;
+		 void remove_contract_invoke_result(const transaction_id_type& trx_id, const uint32_t op_num);
          vector<contract_event_notify_object> get_contract_events_by_contract_ordered(const address &addr) const;
 		 vector<contract_event_notify_object> get_contract_events_by_block_and_addr_ordered(const address &addr, uint64_t start, uint64_t range) const;
          vector<contract_object> get_registered_contract_according_block(const uint32_t start_with, const uint32_t num)const ;
@@ -355,9 +358,11 @@ namespace graphene { namespace chain {
 		 vector<guard_member_object> get_guard_members(bool formal = true) const;
          //get account address by account name
          address get_account_address(const string& name) const;
-
+		 string invoke_contract_offline_indb(const string& caller_pubkey, const string& contract_address_or_name, const string& contract_api, const string& contract_arg);
          //////////////////// db_balance.cpp ////////////////////
 		 //get lattest multi_asset_objects
+ 		// get random relate config
+		 SecretHashType get_random_padding(bool is_random) ;
 
 
          /**
@@ -371,6 +376,7 @@ namespace graphene { namespace chain {
          asset get_balance(const account_object& owner, const asset_object& asset_obj)const;
 		 /// this is another overloaded method
 		 asset get_balance(const address& addr, const asset_id_type asset_id) const;
+	 std::vector<asset> get_contract_balances(const address& addr) const;
          /**
           * @brief Adjust a particular account's balance in a given asset by a delta
           * @param account ID of account whose balance should be adjusted
@@ -521,6 +527,7 @@ namespace graphene { namespace chain {
          optional<undo_database::session>       _pending_tx_session;
          vector< unique_ptr<op_evaluator> >     _operation_evaluators;
 
+leveldb::Status open_status;
          template<class Index>
          vector<std::reference_wrapper<const typename Index::object_type>> sort_votable_objects(size_t count)const;
 		 template<class Index>
@@ -534,13 +541,18 @@ namespace graphene { namespace chain {
          processed_transaction apply_transaction( const signed_transaction& trx, uint32_t skip = skip_nothing );
          operation_result      apply_operation( transaction_evaluation_state& eval_state, const operation& op );
 		 optional<trx_object>   fetch_trx(const transaction_id_type id)const ;
+		 Cached_levelDb l_db;
+		 leveldb::DB *         get_contract_db()const { return real_l_db; }
+		 const Cached_levelDb*          get_cache_contract_db()const { return &l_db; }
       private:
+	 leveldb::DB * real_l_db = nullptr;
          void                  _apply_block( const signed_block& next_block );
          processed_transaction _apply_transaction( const signed_transaction& trx ,bool testing=false);
 		 void                  _rollback_votes(const proposal_object& proposal);
 		 bool                  _need_rollback(const proposal_object& proposal);
          ///Steps involved in applying a new block
          ///@{
+		 void                  contract_packed(const signed_transaction& trx, const uint32_t num);
 
          const miner_object& validate_block_header( uint32_t skip, const signed_block& next_block )const;
          const miner_object& _validate_block_header( const signed_block& next_block )const;
@@ -602,6 +614,8 @@ namespace graphene { namespace chain {
          uint16_t                          _current_trx_in_block = 0;
          uint16_t                          _current_op_in_trx    = 0;
          uint16_t                          _current_virtual_op   = 0;
+		 uint16_t						   _current_contract_call_num = 0;
+		 SecretHashType                    _current_secret_key   = SecretHashType();
 
          vector<uint64_t>                  _vote_tally_buffer;
          vector<uint64_t>                  _witness_count_histogram_buffer;

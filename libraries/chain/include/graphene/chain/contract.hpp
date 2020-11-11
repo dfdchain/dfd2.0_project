@@ -47,8 +47,8 @@ namespace graphene {
 			}
 		};
 
-		typedef std::map<std::string, StorageDataChangeType, comparator_for_string> contract_storage_changes_type;
-
+		typedef std::map<std::string, StorageDataChangeType> contract_storage_changes_type;
+		struct contract_invoke_result_object;
 		struct contract_invoke_result
 		{
 			std::string api_result;
@@ -69,15 +69,19 @@ namespace graphene {
 			// recursive_ordered_dumps to like-json(something looks like json), and digest to string
 			string ordered_digest() const;
 
+			// @throws uvm::core::UvmException
+			void validate();
+			bool maybe_invalid() const;
 			// count storage gas and events gas
 			int64_t count_storage_gas() const;
 			int64_t count_event_gas() const;
+			void transfer_from_obj(const contract_invoke_result_object& obj);
 		};
 
 		struct contract_register_operation : public base_operation
 		{
 			struct fee_parameters_type {
-				uint64_t fee = 1000 * GRAPHENE_DFDCHAIN_PRECISION;
+				uint64_t fee = 0.001 * GRAPHENE_DFDCHAIN_PRECISION;
 				uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
 			};
 			
@@ -102,6 +106,7 @@ namespace graphene {
 				a.push_back(authority(1, owner_addr, 1));
 			}
 			address calculate_contract_id() const;
+			static address get_first_contract_id();
 		};
 
 		struct contract_upgrade_operation : public base_operation
@@ -187,7 +192,7 @@ namespace graphene {
 		struct transfer_contract_operation : public base_operation
         {
             struct fee_parameters_type {
-                uint64_t fee = 0.0001 * GRAPHENE_DFDCHAIN_PRECISION;
+                uint64_t fee = 0.001 * GRAPHENE_DFDCHAIN_PRECISION;
                 uint32_t price_per_kbyte = 10 * GRAPHENE_BLOCKCHAIN_PRECISION; /// only required for large fields.
             };
 

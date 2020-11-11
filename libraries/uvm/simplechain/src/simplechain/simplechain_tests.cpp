@@ -75,6 +75,7 @@ void test2()
 			chain->evaluate_transaction(tx);
 			chain->accept_transaction_to_mempool(*tx);
 		}
+		printf("");
 		{
 			auto tx1 = std::make_shared<transaction>();
 
@@ -90,7 +91,11 @@ void test2()
 		chain->generate_block();
 		{
 			auto tx = std::make_shared<transaction>();
-			auto op = operations_helper::invoke_contract(caller_addr, contract1_addr, "init_token", { "test,TEST,10000,100" });
+			fc::variants arrArgs;
+			fc::variant aarg;
+			fc::to_variant(std::string("test,TEST,10000,100"), aarg);
+			arrArgs.push_back(aarg);
+			auto op = operations_helper::invoke_contract(caller_addr, contract1_addr, "init_token", arrArgs);
 			tx->operations.push_back(op);
 			tx->tx_time = fc::time_point_sec(fc::time_point::now());
 
@@ -110,6 +115,8 @@ void test2()
 		std::cerr << e.what() << std::endl;
 		//BOOST_CHECK(false);
 	}
+
+	_CrtDumpMemoryLeaks();
 }
 
 //BOOST_AUTO_TEST_SUITE_END()

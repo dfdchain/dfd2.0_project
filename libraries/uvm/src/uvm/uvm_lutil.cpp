@@ -152,7 +152,7 @@ namespace uvm
 		{
 			while (source.length() > 0 && (source[0] == ' ' || source[0] == '\t' || source[0] == '\n' || source[0] == '\r'))
 				source.erase(0, source.find_first_of(source[0]) + 1);
-			while (source.length() > 0 && (source[source.length() - 1] == ' ' || source[source.length() - 1] == '\t' || source[source.length() - 1] == '\n' || source[source.length()-1] == '\r'))
+			while (source.length() > 0 && (source[source.length() - 1] == ' ' || source[source.length() - 1] == '\t' || source[source.length() - 1] == '\n' || source[source.length() - 1] == '\r'))
 				source.erase(source.find_last_not_of(source[source.length() - 1]) + 1);
 			return source;
 		}
@@ -309,7 +309,7 @@ namespace uvm
 		char RlpObject::to_char() const {
 			uvm_assert(type == RlpObjectType::ROT_BYTES, "invalid rlp object type");
 			uvm_assert(bytes.size() == 1, "invalid rlp char");
-			return (char) bytes.at(0);
+			return (char)bytes.at(0);
 		}
 		std::string RlpObject::to_string() const {
 			uvm_assert(type == RlpObjectType::ROT_BYTES, "invalid rlp object type");
@@ -503,7 +503,10 @@ namespace uvm
 			return put(std::to_string(value));
 		}
 		stringbuffer* stringbuffer::put(double value) {
-			return put(std::to_string(value));
+			char buf[100] = { 0 };
+			sprintf(buf, "%f", value);
+			return put(std::string(buf));
+			//return put(std::to_string(value));
 		}
 		stringbuffer* stringbuffer::put_bool(bool value) {
 			std::string value_str(value ? "true" : "false");
@@ -519,9 +522,11 @@ namespace uvm
 		std::string unhex(const std::string& int_str) {
 			return convert_pre(16, 10, int_str);
 		}
+
 		std::string hex(const std::string& hex_str) {
 			return convert_pre(10, 16, hex_str);
 		}
+
 		std::string convert_pre(int old_base, int new_base, std::string source_str) {
 			if (source_str.length() > 0 && source_str[0] == '-')
 			{

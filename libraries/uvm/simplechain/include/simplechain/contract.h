@@ -57,7 +57,6 @@ namespace simplechain {
 
 	class blockchain;
 
-
 	struct contract_invoke_result : public evaluate_result
 	{
 		std::string api_result;
@@ -74,6 +73,9 @@ namespace simplechain {
 		address invoker;
 		void reset();
 		void set_failed();
+
+		// @throws exception
+		void validate();
 
 		void apply_pendings(blockchain* chain, const std::string& tx_id);
 
@@ -151,7 +153,8 @@ namespace simplechain {
 		std::string caller_address;
 		std::string contract_address;
 		std::string contract_api;
-		std::vector<std::string> contract_args;
+		//std::vector<std::string> contract_args;
+		fc::variants contract_args;
 		uint64_t gas_price;
 		uint64_t gas_limit;
 		share_type deposit_amount = 0;

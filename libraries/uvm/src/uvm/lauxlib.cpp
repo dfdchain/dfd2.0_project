@@ -40,6 +40,7 @@
 #include <uvm/exceptions.h>
 #include <boost/variant.hpp>
 #include <boost/lexical_cast.hpp>
+#include <vmgc/vmgc.h>
 #include <boost/scope_exit.hpp>
 
 #include <fc/crypto/hex.hpp>
@@ -385,8 +386,8 @@ LUALIB_API void luaL_checkstack(lua_State *L, int space, const char *msg) {
 
 
 LUALIB_API void luaL_checktype(lua_State *L, int arg, int t) {
-    if (lua_type(L, arg) != t)
-        tag_error(L, arg, t);
+	if (lua_type(L, arg) != t)
+		tag_error(L, arg, t);
 }
 
 
@@ -1120,9 +1121,26 @@ static int contract_api_wrapper_func(lua_State *L)
 	auto contract_info_stack = uvm::lua::lib::get_using_contract_id_stack(L, true);
 	if (!contract_info_stack)
 		return 0;
-	uvm::lua::lib::contract_info_stack_entry stack_entry;
+	contract_info_stack_entry stack_entry;
 	stack_entry.contract_id = contract_id;
+	// 如果是被delegate_call调用的，storage_contract_id填上一层的storage contract id
+	stack_entry.storage_contract_id = contract_id;
+	if (L->next_delegate_call_flag) {
+		// 取stack前一项的storage_contract_id用来继承
+		if (!contract_info_stack->empty()) {
+			stack_entry.storage_contract_id = contract_info_stack->top().storage_contract_id;
+		}
+		L->next_delegate_call_flag = false; // next_delegate_call_flag标记每次只生效一次
+	}
 	stack_entry.api_name = api_name;
+	if (L->call_op_msg == UOP_CSTATICCALL) {
+		stack_entry.call_type = std::string("STATIC_CALL");
+	}
+	else {
+		stack_entry.call_type = "CALL";
+	}
+	L->call_op_msg = OpCode(0);
+	
 	contract_info_stack->push(stack_entry);
 	lua_pushvalue(L, api_func_index);
 	auto args_count = lua_gettop(L) - 1;
@@ -1132,6 +1150,9 @@ static int contract_api_wrapper_func(lua_State *L)
 	}
     auto nresults = 1;
 	lua_call(L, args_count, nresults);
+	if (L->state & (lua_VMState::LVM_STATE_BREAK | lua_VMState::LVM_STATE_SUSPEND)) {
+		return 0;
+	}
 	// pop contract id from stack
 	if (contract_info_stack->size() > 0)
 		contract_info_stack->pop();
@@ -1370,6 +1391,7 @@ bool luaL_get_contract_apis(lua_State *L, UvmModuleByteStream *stream, char *err
 void lua_fill_contract_info_for_use(lua_State *L)
 {
     lua_newtable(L);
+	lua_settableonlyread(L, -1, true);
     lua_setfield(L, -2, "_data");
     lua_getglobal(L, "contract_mt");
     lua_setmetatable(L, -2); // contractmetatablecontract_mt
@@ -1672,6 +1694,7 @@ int luaL_import_contract_module_from_address(lua_State *L)
         lua_setfield(L, -2, "name");
         lua_pushstring(L, contract_id);
         lua_setfield(L, -2, "id");
+		
 
 		auto starting_contract_address = uvm::lua::lib::get_starting_contract_address(L);
         bool is_starting_contract = false;
@@ -1978,8 +2001,27 @@ int luaL_import_contract_module(lua_State *L)
     return 1;
 }
 
+static bool isArgTypeMatched(UvmTypeInfoEnum storedType, int inputType) {
+	switch (storedType) {
+	case(LTI_NIL):
+		return inputType == LUA_TNIL;
+	case(LTI_STRING):
+		return inputType == LUA_TSTRING;
+	case(LTI_INT):
+		return inputType == LUA_TNUMBER;
+	case(LTI_NUMBER):
+		return inputType == LUA_TNUMBER;
+	case(LTI_BOOL):
+		return inputType == LUA_TBOOLEAN;
+	default:
+		return false;
+	}
+}
+
+
+
 static int lua_real_execute_contract_api(lua_State *L
-  , const char *contract_name, const char *api_name, const char *arg1
+  , const char *contract_name, const char *api_name, cbor::CborArrayValue& args
 )
 {
     /*
@@ -1989,7 +2031,7 @@ static int lua_real_execute_contract_api(lua_State *L
     const char *api_name = luaL_checkstring(L, 2);
      const char *arg1 = lua_gettop(L)>2 && lua_isstring(L, 3) ? luaL_checkstring(L, 3) : nullptr;
      */
-	std::string arg1_str = arg1 ? std::string(arg1) : ""; // FIXME: somewhere pop the argument
+	//std::string arg1_str = arg1 ? std::string(arg1) : ""; // FIXME: somewhere pop the argument
     
     // FIXME
     if (!(uvm::util::starts_with(contract_name, STREAM_CONTRACT_PREFIX)
@@ -1998,7 +2040,7 @@ static int lua_real_execute_contract_api(lua_State *L
     {
         global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "can't find this contract");
         lua_pushinteger(L, LUA_ERRRUN);
-        return 1;
+        return 0;
     }
     bool is_address = uvm::util::starts_with(contract_name, ADDRESS_CONTRACT_PREFIX);
     char address[CONTRACT_ID_MAX_LENGTH + 1] = "\0";
@@ -2039,12 +2081,12 @@ static int lua_real_execute_contract_api(lua_State *L
     {
         global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "need load contract before execute contract api");
         lua_pushinteger(L, LUA_ERRRUN);
-        return 1;
+        return 0;
     }
     if (!lua_istable(L, -1))
     {
         lua_pushinteger(L, LUA_ERRRUN);
-        return 1;
+        return 0;
     }
 
     bool is_self = uvm::util::starts_with(contract_name, STREAM_CONTRACT_PREFIX)
@@ -2082,25 +2124,70 @@ static int lua_real_execute_contract_api(lua_State *L
     if (lua_isfunction(L, -1))
     {
         lua_pushvalue(L, -2); // push self	
-		if (uvm::util::vector_contains(uvm::lua::lib::contract_int_argument_special_api_names, api_name_str))
+		/*if (uvm::util::vector_contains(uvm::lua::lib::contract_int_argument_special_api_names, api_name_str))
 		{
 			std::stringstream arg_ss;
-			arg_ss << arg1_str;
+			//arg_ss << arg1_str;
 			lua_Integer arg1_int = 0;
 			arg_ss >> arg1_int;
 			lua_pushinteger(L, arg1_int);
-		}
-		else
-		{
-			lua_pushstring(L, arg1_str.c_str());
+		}*/
+		//else
+		{ //push args ; check args  
+			auto stored_contract_info = std::make_shared<UvmContractInfo>();
+			if (!global_uvm_chain_api->get_stored_contract_info_by_address(L, address, stored_contract_info))
+			{
+				global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "get_stored_contract_info_by_address %s error", address);
+				return 0;
+			}
+			std::vector<UvmTypeInfoEnum> arg_types;
+			bool check_arg_type = false;  //old gpc vesion, no arg_types info
+			if (stored_contract_info->contract_api_arg_types.size() > 0) {
+				if (stored_contract_info->contract_api_arg_types.find(api_name_str) == stored_contract_info->contract_api_arg_types.end()) {
+					global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "can't find api_arg_types %s error", api_name_str.c_str());
+					return 0;
+				}
+				check_arg_type = true; //new gpc version has arg_types, support muti args, try check
+				std::copy(stored_contract_info->contract_api_arg_types[api_name_str].begin(), stored_contract_info->contract_api_arg_types[api_name_str].end(), std::back_inserter(arg_types));
+			}
+
+			int input_args_num = args.size();
+			if (check_arg_type) { //new version
+				if (arg_types.size() != input_args_num) {
+					global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "args num not match %d error", arg_types.size());
+					return 0;
+				}
+			}
+			else {  //old gpc version,  conctract api accept only one arg
+				if (input_args_num != 1 && api_name_str!="init") {
+					global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "old vesion gpc only accept 1 arg , but input %d args", input_args_num);
+					return 0;
+				}
+			}
+			for (int i=0;i<input_args_num;i++){
+				const auto& arg = args[i];
+				luaL_push_cbor_as_json(L, arg);
+				if (check_arg_type) {
+					if (!isArgTypeMatched(arg_types[i],lua_type(L,-1))) {
+						global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "arg type not match ,api:%s args", api_name_str.c_str());
+						return 0;
+					}
+				}
+				
+			}
+			//lua_pushstring(L, arg1_str.c_str());
 		}
 
-		int status = lua_pcall(L, 2, 1, 0);
+		int status = lua_pcall(L, (1 + args.size()), 1, 0);  //contract_table, arg1, arg2, ...
 		if (status != LUA_OK)
 		{
 			global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "execute api %s contract error", api_name_str.c_str());
 			return 0;
 		}
+		if (status == LUA_OK && (L->state & (lua_VMState::LVM_STATE_BREAK | lua_VMState::LVM_STATE_SUSPEND))) {
+			return status;
+		}
+
 		lua_pop(L, 1);
         lua_pop(L, 1); // pop self
     } else
@@ -2114,56 +2201,66 @@ static int lua_real_execute_contract_api(lua_State *L
     return 1;
 }
 
+
 LUA_API int lua_execute_contract_api(lua_State *L, const char *contract_name,
-	const char *api_name, const char *arg1, std::string *result_json_string)
+	const char *api_name, cbor::CborArrayValue& args, std::string *result_json_string)
 {
-	auto contract_address = uvm::lua::lib::malloc_managed_string(L, CONTRACT_ID_MAX_LENGTH + 1);
-	if (!contract_address)
+	try {
+		auto contract_address = uvm::lua::lib::malloc_managed_string(L, CONTRACT_ID_MAX_LENGTH + 1);
+        if (!contract_address)
+		    return LUA_ERRRUN;
+		memset(contract_address, 0x0, CONTRACT_ID_MAX_LENGTH + 1);
+		size_t address_size = 0;
+		global_uvm_chain_api->get_contract_address_by_name(L, contract_name, contract_address, &address_size);
+		if (address_size > 0)
+		{
+			UvmStateValue value;
+			value.string_value = contract_address;
+			uvm::lua::lib::set_lua_state_value(L, STARTING_CONTRACT_ADDRESS, value, LUA_STATE_VALUE_STRING);
+		}
+
+		lua_createtable(L, 0, 0);
+		lua_setglobal(L, "last_return");
+
+		int status = lua_real_execute_contract_api(L, contract_name, api_name, args);
+		if (status == LUA_OK && (L->state & (lua_VMState::LVM_STATE_BREAK | lua_VMState::LVM_STATE_SUSPEND))) {
+			return status;
+		}
+
+		if (lua_gettop(L) < 1)
+			return LUA_ERRRUN;
+		int result = lua_toboolean(L, -1);
+		if (result > 0 && result_json_string)
+		{
+			lua_getglobal(L, "last_return");
+			auto last_return_value_json = luaL_tojsonstring(L, -1, nullptr);
+			auto last_return_value_json_string = std::string(last_return_value_json);
+			lua_pop(L, 1);
+			*result_json_string = last_return_value_json_string;
+		}
+		if (result && !(L->state & (lua_VMState::LVM_STATE_BREAK| lua_VMState::LVM_STATE_SUSPEND)))
+			result = luaL_commit_storage_changes(L);
+		return result > 0 ? LUA_OK : LUA_ERRRUN;
+	}
+	catch (const std::exception& e) {
+		uvm::lua::api::global_uvm_chain_api->throw_exception(L, UVM_API_LVM_ERROR, e.what());
 		return LUA_ERRRUN;
-	memset(contract_address, 0x0, CONTRACT_ID_MAX_LENGTH + 1);
-	size_t address_size = 0;
-	global_uvm_chain_api->get_contract_address_by_name(L, contract_name, contract_address, &address_size);
-	if (address_size > 0)
-	{
-		UvmStateValue value;
-		value.string_value = contract_address;
-		uvm::lua::lib::set_lua_state_value(L, STARTING_CONTRACT_ADDRESS, value, LUA_STATE_VALUE_STRING);
 	}
-
-	lua_createtable(L, 0, 0);
-	lua_setglobal(L, "last_return");
-
-    int status = lua_real_execute_contract_api(L, contract_name, api_name, arg1);
-
-    if (lua_gettop(L) < 1)
-        return LUA_ERRRUN;
-    int result = lua_toboolean(L, -1);
-	if (result>0 && result_json_string)
-	{
-		lua_getglobal(L, "last_return");
-		auto last_return_value_json = luaL_tojsonstring(L, -1, nullptr);
-		auto last_return_value_json_string = std::string(last_return_value_json);
-		lua_pop(L, 1);
-		*result_json_string = last_return_value_json_string;
-	}
-	if(result)
-		result = luaL_commit_storage_changes(L);
-    return result > 0 ? LUA_OK : LUA_ERRRUN;
 }
 
 LUA_API int lua_execute_contract_api_by_address(lua_State *L, const char *address,
-	const char *api_name, const char *arg1, std::string *result_json_string)
+	const char *api_name, cbor::CborArrayValue& args, std::string *result_json_string)
 {
     std::string name = std::string(ADDRESS_CONTRACT_PREFIX) + std::string(address);
-    return lua_execute_contract_api(L, name.c_str(), api_name, arg1, result_json_string);
+    return lua_execute_contract_api(L, name.c_str(), api_name, args, result_json_string);
 }
 
 LUA_API int lua_execute_contract_api_by_stream(lua_State *L, UvmModuleByteStream *stream,
-	const char *api_name, const char *arg1, std::string *result_json_string)
+	const char *api_name, cbor::CborArrayValue& args, std::string *result_json_string)
 {
     intptr_t stream_p = (intptr_t)stream;
     std::string name = std::string(STREAM_CONTRACT_PREFIX) + std::to_string(stream_p);
-    return lua_execute_contract_api(L, name.c_str(), api_name, arg1, result_json_string);
+    return lua_execute_contract_api(L, name.c_str(), api_name, args, result_json_string);
 }
 
 std::shared_ptr<UvmModuleByteStream> lua_common_open_contract(lua_State *L, const char *name, char *error)
@@ -2694,6 +2791,9 @@ static void luatablemap_to_json_stream(UvmTableMapP map, uvm::util::stringbuffer
             ss.put(value.value.int_value);
             break;
 		case uvm::blockchain::StorageValueTypes::storage_value_number:
+			// char buff[50];
+			// l_sprintf(buff, sizeof(buff), LUA_NUMBER_FMT, value.value.number_value);
+			// ss.put(std::string(buff));
             ss.put(value.value.number_value);
             break;
 		case uvm::blockchain::StorageValueTypes::storage_value_string:
@@ -2887,6 +2987,9 @@ LUALIB_API int luaL_push_cbor_as_json(lua_State* L, cbor::CborObjectP cbor_objec
 		return 1;
 	case cbor::CborObjectType::COT_BOOL:
 		lua_pushboolean(L, cbor_object->as_bool() ? 1 : 0);
+		return 1;
+	case cbor::CborObjectType::COT_FLOAT:
+		lua_pushnumber(L, cbor_object->as_float64());
 		return 1;
 	case cbor::CborObjectType::COT_INT:
 		lua_pushinteger(L, cbor_object->as_int());
@@ -3103,15 +3206,16 @@ LUALIB_API const char *luaL_gsub(lua_State *L, const char *s, const char *p,
     return lua_tostring(L, -1);
 }
 
-
 static void *l_alloc(void *ud, void *ptr, size_t osize, size_t nsize) {
-    (void)ud; (void)osize;  /* not used */
+	auto gc_state = (vmgc::GcState*)ud;
+	if (!gc_state)
+		return nullptr;
     if (nsize == 0) {
-        free(ptr);
+        gc_state->gc_free(ptr);
         return nullptr;
     }
     else
-        return realloc(ptr, nsize);
+        return gc_state->gc_realloc(ptr, osize, nsize);
 }
 
 
@@ -3123,7 +3227,10 @@ static int panic(lua_State *L) {
 
 
 LUALIB_API lua_State *luaL_newstate(void) {
-    lua_State *L = lua_newstate(l_alloc, nullptr);
+	lua_State *L = nullptr;
+	do {
+		L = lua_newstate(l_alloc, nullptr);
+	} while (nullptr == L);
     if (L) lua_atpanic(L, &panic);
     return L;
 }
@@ -3133,13 +3240,32 @@ LUALIB_API void luaL_checkversion_(lua_State *L, lua_Number ver, size_t sz) {
     const lua_Number *v = lua_version(L);
     if (sz != LUAL_NUMSIZES)  /* check numeric types */
         luaL_error(L, "core and library have incompatible numeric types");
-    if (v != lua_version(nullptr))
+	auto g_version = lua_version(nullptr);
+    if (*v != *g_version)
         luaL_error(L, "multiple Lua VMs detected");
     else if (*v != ver)
         luaL_error(L, "version mismatch: app. needs %f, Lua core provides %f",
         ver, *v);
 }
 
+namespace fc {
+	void to_variant(std::map<std::string, TValue> m, variant& vo) {
+		std::map<std::string, TValue>::iterator it;
+		auto L = luaL_newstate();
+		fc::mutable_variant_object res;
+        for (it = m.begin(); it != m.end();it++) {
+            *(L->top) = it->second;
+            api_incr_top(L);
+            luaL_tojsonstring(L, -1, nullptr);
+            const char *value_str = luaL_checkstring(L, -1);
+            lua_pop(L, 2);
+            auto v = std::string(value_str);
+            res[it->first]=v;
+        }		
+		vo = std::move(res);
+		lua_close(L);	
+	}
+}
 
 size_t luaL_wrap_contract_apis(lua_State *L, int index, void *ud)
 {

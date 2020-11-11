@@ -59,9 +59,9 @@
 #include <iostream>
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
-#include <fc/smart_ref_impl.hpp>
-#define STACK_FILE_NAME  "_stack"
-#define STORAGE_FILE_NAME "_storage"
+
+#define STACK_FILE_NAME  "stack"
+#define STORAGE_FILE_NAME "storage"
 
 namespace graphene { namespace db {
     using namespace graphene::chain;
@@ -818,15 +818,16 @@ bool undo_storage::store(const undo_state_id_type & _id, const serializable_undo
 			elog("id argument of block_database::store() was not initialized for block ${id}", ("id", id));
 		}
 		leveldb::WriteOptions write_options;
-		write_options.sync = true;
-		leveldb::Status sta = db->Put(write_options,id.str(), fc::json::to_string(b));
-	
+		const auto& vec = fc::raw::pack(b);
+		leveldb::Status sta = db->Put(write_options, _id.str(), leveldb::Slice(vec.data(), vec.size()));
 		if (!sta.ok())
 		{
-			elog("Put error: ${error}", ("error", (id.str()+":"+sta.ToString()).c_str()));
+			elog("Put error: ${error}", ("error", (_id.str()+":"+sta.ToString()).c_str()));
 			FC_ASSERT(false, "Put Data to undo_storage failed");
 			return false;
 		}
+
+		 
 		return true;
 	} FC_CAPTURE_AND_RETHROW((_id)(b))
 }
@@ -843,7 +844,8 @@ bool undo_storage::remove(const undo_state_id_type& id)
 
 		if (!sta.ok())
 		{
-			 
+			if (sta.IsNotFound())
+				return true;
 			elog("delete error: ${key}", ("key", id.str()));
 			FC_ASSERT(false, "Delete Data to undo_storage failed");
 			return false;
@@ -861,12 +863,11 @@ optional<serializable_undo_state> undo_storage::fetch_optional(const undo_state_
 		leveldb::Status sta = db->Get(read_options, id.str(), &out);
 		if (!sta.ok())
 		{
-			 
-			elog("read error: ${key},error is ${error}", ("key", id.str().c_str())("error",sta.ToString()));
+			elog("read error: ${key}", ("key", id.str().c_str()));
 			FC_ASSERT(false, "fetch_optional Data from undo_storage failed");
 		}
-		serializable_undo_state state = fc::json::from_string(out).as<serializable_undo_state>();
-		 
+		vector<char> vec(out.begin(),out.end());
+		serializable_undo_state state = fc::raw::unpack<serializable_undo_state>(vec);
 		return state;
 	}
 	catch (const fc::exception&)

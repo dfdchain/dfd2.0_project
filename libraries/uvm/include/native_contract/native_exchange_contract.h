@@ -4,7 +4,7 @@
 
 namespace uvm {
 	namespace contract {
-		
+		//order: {orderInfo:{purchaseAsset:"HC",purchaseNum:20,payAsset:"HX",payNum:100,nounce:"13df",relayer:"HXsrsfsfe3",fee:"0.0001"},sig:"rsowor233"}
 		//{takerOrder:order,takerPayNum:80,fillOrders:[{order:order1,fillNum:30},{order:order2,fillNum:50}]
 		namespace exchange {
 			struct OrderInfo {

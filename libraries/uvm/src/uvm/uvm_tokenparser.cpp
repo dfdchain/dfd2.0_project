@@ -1,6 +1,7 @@
 ﻿#include <uvm/uvm_tokenparser.h>
 #include <sstream>
 #include <uvm/uvm_lutil.h>
+#include <uvm/lctype.h>
 #include <uvm/exceptions.h>
 
 using uvm::lua::api::global_uvm_chain_api;
@@ -354,8 +355,8 @@ namespace uvm
             literal_str << (char)_current_char(code);
             _save_to_buff_and_next(_current_char(code));
             while (_current_char(code) != delimiter) {
-                if (_current_char(code) != '\\' || _next_token_char(code) != 'z')
-                    literal_str << (char)_current_char(code);
+                if (_current_char(code) != '\\' || _next_token_char(code) != 'z')  //?????
+                    literal_str << (char)_current_char(code);  
                 switch (_current_char(code)) {
                 case EOF_TOKEN_CHAR:
 					THROW_PERROR("unfinished string");
@@ -366,7 +367,7 @@ namespace uvm
                     return;
                 case '\\': {  /* escape sequences */
                     int c;  /* final character to be saved */
-                    _save_to_buff_and_next(_current_char(code));  /* keep '\\' for error messages */
+                    _save_to_buff_and_next(_current_char(code));  /* keep '\\' for error messages */ //?????
                     switch (_current_char(code)) {
                     case 'a': c = '\a'; goto read_save;
                     case 'b': c = '\b'; goto read_save;

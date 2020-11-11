@@ -1,7 +1,6 @@
 ﻿#include <graphene/chain/contract.hpp>
 #include <graphene/chain/contract_engine_builder.hpp>
 #include <uvm/uvm_lib.h>
-#include <fstream>
 #include <fc/array.hpp>
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
@@ -16,7 +15,7 @@
 #include <fc/crypto/hex.hpp>
 #include <fc/thread/mutex.hpp>
 #include <fc/thread/scoped_lock.hpp>
-
+#include <graphene/chain/contract_object.hpp>
 namespace graphene {
 	namespace chain {
 
@@ -49,6 +48,112 @@ namespace graphene {
             exec_succeed = false;
             acctual_fee = fee;
         }
+
+	void contract_invoke_result::validate() {
+		// in >= out + fee
+		std::map<asset_id_type, share_type> in_totals;
+		std::map<asset_id_type, share_type> out_totals;
+		for(const auto& p : contract_withdraw) {
+			auto asset = p.first.second;
+			auto change = p.second;
+			if(change == 0)
+				continue;
+			// in
+			share_type total = 0;
+			if(in_totals.find(asset) != in_totals.end())
+				total = in_totals[asset];
+			total += change;
+			in_totals[asset] = total;
+		}
+                for(const auto& p : deposit_contract) {
+                        auto asset = p.first.second;
+                        auto change = p.second;
+                        if(change == 0)
+                                continue;
+                        // out
+                        share_type total = 0;
+                        if(out_totals.find(asset) != out_totals.end())
+                                total = out_totals[asset];
+                        total += change;
+                        out_totals[asset] = total;
+                }
+                for(const auto& p : deposit_to_address) {
+                        auto asset = p.first.second;
+                        auto change = p.second;
+                        if(change == 0)
+                                continue;
+                        // out
+                        share_type total = 0;
+                        if(out_totals.find(asset) != out_totals.end())
+                                total = out_totals[asset];
+                        total += change;
+                        out_totals[asset] = total;
+                }
+		// TODO: add caller deposit amodeposit amounts to in. need split caller's deposit from contract_withdraws
+
+		// add fees to out
+		for (const auto& p : transfer_fees) {
+			auto asset = p.first;
+			auto change = p.second;
+			share_type total = 0;
+			if (out_totals.find(asset) != out_totals.end())
+				total = out_totals[asset];
+			total += change;
+		}
+		// each asset in out must have large in
+		for (const auto& p : out_totals) {
+			auto asset = p.first;
+			auto out_total = p.second;
+			if (out_total == 0) {
+				continue;
+			}
+			if (in_totals.find(asset) == in_totals.end() || in_totals[asset] < out_total) {
+				throw uvm::core::UvmException("contract evaluate result must in >= out + fee");
+			}
+		}	
+	}
+
+	void contract_invoke_result::transfer_from_obj(const contract_invoke_result_object& obj)
+	{
+		api_result = obj.api_result;
+		events = obj.events;
+		exec_succeed = obj.exec_succeed;
+		acctual_fee = obj.acctual_fee;
+		invoker = obj.invoker;
+		contract_registed = obj.contract_registed;
+		
+		for (auto it = obj.storage_changes.begin(); it != obj.storage_changes.end(); it++)
+		{
+			storage_changes.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.contract_withdraw.begin(); it != obj.contract_withdraw.end(); it++)
+		{
+			contract_withdraw.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.contract_balances.begin(); it != obj.contract_balances.end(); it++)
+		{
+			contract_balances.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.deposit_contract.begin(); it != obj.deposit_contract.end(); it++)
+		{
+			deposit_contract.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.deposit_to_address.begin(); it != obj.deposit_to_address.end(); it++)
+		{
+			deposit_to_address.insert(make_pair(it->first, it->second));
+		}
+		for (auto it = obj.transfer_fees.begin(); it != obj.transfer_fees.end(); it++)
+		{
+			transfer_fees.insert(make_pair(it->first, it->second));
+		}
+
+	}
+
+	bool contract_invoke_result::maybe_invalid() const {
+		return (storage_changes.empty() && contract_withdraw.empty() &&
+			contract_balances.empty() && deposit_to_address.empty() && deposit_contract.empty() &&
+			transfer_fees.empty() && events.empty());
+	}
 
 	int64_t contract_invoke_result::count_storage_gas() const {
 		cbor_diff::CborDiff differ;
@@ -185,7 +290,7 @@ namespace graphene {
             result_array.push_back(transfer_fees_array);
 
 
-			auto array_json_str = json_dumps(result_array);
+			const auto& array_json_str = json_dumps(result_array);
 			return fc::sha256::hash(array_json_str.c_str(), array_json_str.size()).str();
 		}
 
@@ -212,6 +317,17 @@ namespace graphene {
 			return core_fee_required+schedule.fee;
 		}
 
+		address contract_register_operation::get_first_contract_id()
+		{
+			address id;
+			fc::sha512::encoder enc;
+			Code co;
+			time_point_sec regtm;
+			std::pair<uvm::blockchain::Code, fc::time_point> info_to_digest(co,regtm );
+			fc::raw::pack(enc, info_to_digest);
+			id = address(fc::ripemd160::hash(enc.result()), addressVersion::CONTRACT);
+			return id;
+		}
         address contract_register_operation::calculate_contract_id() const
 		{ 
             address id;
@@ -227,7 +343,6 @@ namespace graphene {
                 std::pair<address, fc::time_point> info_to_digest(inherit_from, register_time);
                 fc::raw::pack(enc, info_to_digest);
             }
-
 			id = address(fc::ripemd160::hash(enc.result()), addressVersion::CONTRACT);
 			return id;
 		}
@@ -294,7 +409,7 @@ namespace graphene {
         {
 
 			FC_ASSERT(contract_id.version() == addressVersion::CONTRACT);
-            FC_ASSERT(invoke_cost > 0 && invoke_cost <= DFD_MAX_GAS_LIMIT);
+            FC_ASSERT(invoke_cost > 0 && invoke_cost <=DFD_MAX_GAS_LIMIT);
             // FC_ASSERT(fee.amount == 0 & fee.asset_id == asset_id_type(0));
             FC_ASSERT(gas_price >= DFD_MIN_GAS_PRICE);
             FC_ASSERT(caller_addr!=address());
@@ -565,7 +680,6 @@ dst_map.insert(std::make_pair(std::string(storage_buf), storage_type)); \
 free(storage_buf); \
 }\
 }
-
 		static fc::mutex file_mutex;
 		uvm::blockchain::Code ContractHelper::load_contract_from_hex(const string& hex)
 		{
@@ -587,7 +701,7 @@ free(storage_buf); \
 				} while (!isprint(s[i]));
 			}
 			string file_string = s;
-			std::ofstream tmp(file_string,std::ios::trunc| std::ios::binary);
+			std::ofstream tmp(file_string,std::ios::trunc|std::ios::binary);
 			tmp.write(bytes.data(),bytes.size());
 			tmp.close();
 			Code code;

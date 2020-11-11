@@ -3,6 +3,7 @@
 #include <string>
 #include <memory>
 #include <simplechain/contract_entry.h>
+#include "cborcpp/cbor_object.h"
 
 namespace simplechain
 {
@@ -17,6 +18,7 @@ namespace simplechain
 		virtual bool has_gas_limit() const = 0;
 		virtual int64_t gas_limit() const = 0;
 		virtual int64_t gas_used() const = 0;
+		virtual int vm_state() const = 0;
 		virtual void set_gas_limit(int64_t gas_limit) = 0;
 		virtual void set_no_gas_limit() = 0;
 		virtual void set_gas_used(int64_t gas_used) = 0;
@@ -35,10 +37,10 @@ namespace simplechain
 		virtual void clear_exceptions() = 0;
 
 		// @throws exception
-		virtual void execute_contract_api_by_address(std::string contract_id, std::string method, std::string argument, std::string *result_json_string) = 0;
+		virtual void execute_contract_api_by_address(std::string contract_id, std::string method, cbor::CborArrayValue& args, std::string *result_json_string) = 0;
 
 		// @throws exception
-		virtual void execute_contract_init_by_address(std::string contract_id, std::string argument, std::string *result_json_string) = 0;
+		virtual void execute_contract_init_by_address(std::string contract_id, cbor::CborArrayValue& args, std::string *result_json_string) = 0;
 
 		virtual void load_and_run_stream(void *stream) = 0;
 

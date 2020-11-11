@@ -11,30 +11,52 @@ namespace simplechain {
 	using namespace rpc;
 
 	static std::map<std::string, RpcHandlerType> rpc_methods = {
-		{ "mint", &mint },
-		{ "transfer", &transfer },
-		{ "create_contract_from_file", &create_contract_from_file },
-		{ "create_native_contract", &create_native_contract },
-		{ "create_contract", &create_contract },
-		{ "invoke_contract", &invoke_contract },
-		{ "invoke_contract_offline", &invoke_contract_offline },
-		{ "exit", &exit_chain },
-		{ "generate_block", &generate_block },
-		{ "get_block_by_height", &get_block_by_height },
-		{ "get_tx", &get_tx },
-		{ "get_tx_receipt", &get_tx_receipt },
-		{ "get_chain_state", &get_chain_state },
-		{ "list_accounts", &list_accounts },
-		{ "list_assets", &list_assets },
-		{ "list_contracts", &list_contracts },
-		{ "get_contract_info", &get_contract_info },
-		{ "get_account_balances", &get_account_balances },
-		{ "get_contract_storages", &get_contract_storages },
-		{ "get_storage", &get_storage },
-		{ "add_asset", &add_asset },
-		{ "generate_key", &generate_key },
-		{ "sign_info", &sign_info }
-		
+
+	{ "mint", &mint },
+	{ "add_asset", &add_asset },
+	{ "register_account", &register_account },
+	{ "transfer", &transfer },
+	{ "create_contract_from_file", &create_contract_from_file },
+	{ "create_native_contract", &create_native_contract },
+	{ "create_contract", &create_contract },
+	{ "invoke_contract", &invoke_contract },
+	{ "invoke_contract_offline", &invoke_contract_offline },
+	{ "exit", &exit_chain },
+	{ "generate_block", &generate_block },
+	{ "get_block_by_height", &get_block_by_height },
+	{ "get_tx", &get_tx },
+	{ "get_tx_receipt", &get_tx_receipt },
+	{ "get_chain_state", &get_chain_state },
+	{ "list_accounts", &list_accounts },
+	{ "list_assets", &list_assets },
+	{ "list_contracts", &list_contracts },
+	{ "get_contract_info", &get_contract_info },
+	{ "get_account_balances", &get_account_balances },
+	{ "get_contract_storages", &get_contract_storages },
+	{ "get_storage", &get_storage },
+	{ "add_asset", &add_asset },
+        { "generate_key", &generate_key },
+        { "sign_info", &sign_info },
+	
+        //add debug rpc
+	{ "set_breakpoint", &set_breakpoint },
+	{ "view_debug_info", &view_debug_info },
+	{ "view_localvars_in_last_debugger_state", &view_localvars_in_last_debugger_state },
+	{ "view_upvalues_in_last_debugger_state", &view_upvalues_in_last_debugger_state },
+	{ "debugger_step_out", &debugger_step_out },
+	{ "debugger_step_into", &debugger_step_into },
+	{ "debugger_step_over", &debugger_step_over },
+	{ "debugger_go_resume", &debugger_go_resume },
+	{ "get_breakpoints_in_last_debugger_state", &get_breakpoints_in_last_debugger_state },
+	{ "remove_breakpoint_in_last_debugger_state", &remove_breakpoint_in_last_debugger_state },
+	{ "clear_breakpoints_in_last_debugger_state", &clear_breakpoints_in_last_debugger_state },
+	{ "debugger_invoke_contract", &debugger_invoke_contract },
+	{ "view_current_contract_storage_value", &view_current_contract_storage_value },
+	{ "view_call_stack", &view_call_stack },
+
+	{ "load_contract_state", &load_contract_state },
+    { "load_new_contract_from_json", &load_new_contract_from_json }
+
 	};
 
 	RpcServer::RpcServer(blockchain* chain, int port)
@@ -93,6 +115,7 @@ namespace simplechain {
 	}
 
 	void RpcServer::start() {
+		_server->config.address = "0.0.0.0";
 		_server->config.port = _port;
 
 		_server->resource["^/api"]["POST"] = [&](shared_ptr<HttpServer::Response> response, shared_ptr<HttpServer::Request> request) {
@@ -107,6 +130,11 @@ namespace simplechain {
 				try {
 					auto result = handler(this->_chain, this->_server.get(), rpc_req.params);
 					rpc_res.result = result;
+				}
+				catch (const fc::exception& e) {
+					rpc_res.has_error = true;
+					rpc_res.error = e.to_detail_string();
+					rpc_res.error_code = 100;
 				}
 				catch (const std::exception& e) {
 					rpc_res.has_error = true;

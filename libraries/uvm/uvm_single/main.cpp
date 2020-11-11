@@ -85,7 +85,7 @@ static void print_usage(const char *badoption) {
 		"  -s       disassemble bytecode to readable assemble\n"
 		"  -r       run bytecode file\n"
 		"  -t       run contract testcases, load script_path + '.test' bytecode file(contains a function accept contract table) to run testcases\n"
-		"  -k       call contract api, -k script_path contract_api api_argument\n"
+		"  -k       call contract api, -k script_path contract_api api_argument [caller_address caller_pubkey]\n"
 		"  -x       run with debugger\n"
 		"  -c       compile source to bytecode\n"
 		"  -h       show help info\n"
@@ -438,9 +438,18 @@ static int pmain(lua_State *L) {
 	}
 	std::string contract_api;
 	std::string contract_api_arg;
+	std::string caller_address = "";
+	std::string caller_pubkey = "";
 	if (args & has_call) {
 		contract_api = argv[script + 1];
 		contract_api_arg = argv[script + 2];
+		if (argc > script + 3) {
+			caller_address = argv[script + 3];
+		}
+		if (argc > script + 4) {
+			caller_pubkey = argv[script + 4];
+
+		}
 	}
 
 	//if (!runargs(L, argv, script))  /* execute arguments -e and -l */
@@ -453,7 +462,9 @@ static int pmain(lua_State *L) {
 		if (args & has_call) {
 			// call contract api
 			std::string result_string;
-			if (!uvm::lua::lib::call_last_contract_api(L, std::string(argv[script]), contract_api, contract_api_arg, &result_string)) {
+			cbor::CborArrayValue arr;
+			arr.push_back(cbor::CborObject::from_string(contract_api_arg));
+			if (!uvm::lua::lib::call_last_contract_api(L, std::string(argv[script]), contract_api, arr,caller_address,caller_pubkey, &result_string)) {
 				return LUA_ERRERR;
 			}
 			printf("result: %s\n", result_string.c_str());
@@ -511,7 +522,7 @@ using uvm::lua::api::global_uvm_chain_api;
 int main(int argc, char **argv) {
 	global_uvm_chain_api = new uvm::lua::api::DemoUvmChainApi();
 	int status, result;
-	uvm::lua::lib::UvmStateScope scope;
+	uvm::lua::lib::UvmStateScope scope(true, true);
 	scope.add_system_extra_libs();
 	lua_State *L = scope.L();
 	if (!L) {

@@ -11,8 +11,8 @@ namespace uvm
 	{
 		_scope = std::make_shared<uvm::lua::lib::UvmStateScope>(use_contract);
 
-		_scope->L()->out = nullptr;
-		_scope->L()->err = nullptr;
+		_scope->L()->out = nullptr; // FIXME
+		_scope->L()->err = nullptr; // FIXME
 	}
 	UvmContractEngine::~UvmContractEngine()
 	{
@@ -94,7 +94,11 @@ namespace uvm
 	void UvmContractEngine::execute_contract_api_by_address(std::string contract_id, std::string method, std::string argument, std::string *result_json_string)
 	{
 		clear_exceptions();
-		uvm::lua::lib::execute_contract_api_by_address(_scope->L(), contract_id.c_str(), method.c_str(), argument.c_str(), result_json_string);
+		cbor::CborArrayValue args;
+		args.push_back(cbor::CborObject::from_string(argument));
+		const auto& txid = uvm::lua::api::global_uvm_chain_api->get_transaction_id_without_gas(_scope->L());
+                uvm::lua::api::global_uvm_chain_api->before_contract_invoke(_scope->L(), contract_id, txid);
+		uvm::lua::lib::execute_contract_api_by_address(_scope->L(), contract_id.c_str(), method.c_str(), args, result_json_string);
 		if (_scope->L()->force_stopping == true && _scope->L()->exit_code == LUA_API_INTERNAL_ERROR)
 			FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (""));
 		int exception_code = uvm::lua::lib::get_lua_state_value(_scope->L(), "exception_code").int_value;
@@ -116,7 +120,9 @@ namespace uvm
 	void UvmContractEngine::execute_contract_init_by_address(std::string contract_id, std::string argument, std::string *result_json_string)
 	{
 		clear_exceptions();
-		uvm::lua::lib::execute_contract_init_by_address(_scope->L(), contract_id.c_str(), argument.c_str(), result_json_string);
+		cbor::CborArrayValue args;
+                args.push_back(cbor::CborObject::from_string(argument));
+		uvm::lua::lib::execute_contract_init_by_address(_scope->L(), contract_id.c_str(), args, result_json_string);
 		if (_scope->L()->force_stopping == true && _scope->L()->exit_code == LUA_API_INTERNAL_ERROR)
 			FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (""));
 		int exception_code = uvm::lua::lib::get_lua_state_value(_scope->L(), "exception_code").int_value;
@@ -143,6 +149,10 @@ namespace uvm
 	{
 		auto code_stream = uvm::lua::api::global_uvm_chain_api->get_bytestream_from_code(_scope->L(), code);
 		return code_stream;
+	}
+
+	std::shared_ptr<uvm::lua::lib::UvmStateScope> UvmContractEngine::scope() const {
+		return _scope;
 	}
 
 }

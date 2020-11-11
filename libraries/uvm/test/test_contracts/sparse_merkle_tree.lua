@@ -81,7 +81,8 @@ offline function M:depth(_: string)
 end
 
 -- check the proof of the leaf as 'uid' is valid
--- arg format: uid, leave_hash, tree_root, proof
+-- TODO: uid use hex format
+-- arg format: uid(big int string), leave_hash(hex string), tree_root(hex string), proof(hex string)
 -- bytes represented by hex string
 function M:verify(arg: string)
     let parsed = parse_at_least_args(arg, 4, "need arg format: uid, leave_hash, tree_root, proof")
@@ -126,6 +127,12 @@ function M:verify(arg: string)
     end
     let diff = safemath.toint(safemath.sub(bytes_to_bigint_as_big_endian(computed_hash), bytes_to_bigint_as_big_endian(tree_root)))
     let diffIsZero = (diff == 0)
+    if not diffIsZero then
+        print("smt verify failed")
+        print("computed_hash: ", computed_hash)
+        print("tree_root: ", tree_root)
+        print("diff: ", safemath.toint(safemath.sub(bytes_to_bigint_as_big_endian(computed_hash), bytes_to_bigint_as_big_endian(tree_root))))
+    end
     return diffIsZero
 end
 

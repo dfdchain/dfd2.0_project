@@ -30,6 +30,10 @@ namespace simplechain {
 		return chain->get_storage(contract_address, key);
 	}
 
+	std::map<std::string, StorageDataType> evaluate_state::get_contract_storages(const std::string& contract_addr) const {
+		return chain->get_contract_storages(contract_addr);
+	}
+
 	void evaluate_state::emit_event(const std::string& contract_address, const std::string& event_name, const std::string& event_arg) {
 		contract_event_notify_info event_notify_info;
 		event_notify_info.block_num = get_chain()->latest_block().block_number + 1;
@@ -48,6 +52,23 @@ namespace simplechain {
 			}
 		}
 		invoke_contract_result.new_contracts.push_back(std::make_pair(contract_address, contract_obj));
+	}
+
+	bool evaluate_state::contains_contract_by_address(const std::string& contract_address) const {
+		for (auto& p : invoke_contract_result.new_contracts) {
+			if (p.first == contract_address) {
+				return true;
+			}
+		}
+		return chain->contains_contract_by_address(contract_address);
+	}
+	bool evaluate_state::contains_contract_by_name(const std::string& name) const {
+		for (auto& p : invoke_contract_result.new_contracts) {
+			if (p.second.contract_name == name) {
+				return true;
+			}
+		}
+		return chain->contains_contract_by_name(name);
 	}
 
 	std::shared_ptr<contract_object> evaluate_state::get_contract_by_address(const std::string& contract_address) const {

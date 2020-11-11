@@ -11,10 +11,40 @@
 #include <fc/crypto/ripemd160.hpp>
 #include <fc/crypto/elliptic.hpp>
 #include <fc/crypto/base58.hpp>
+#include <fc/log/log_message.hpp>
 #include <boost/uuid/sha1.hpp>
 #include <exception>
 #include <graphene/chain/committee_member_object.hpp>
 #include <graphene/chain/witness_object.hpp>
+#include <fc/crypto/hex.hpp>
+#include <graphene/chain/balance_object.hpp>
+
+#ifdef _WIN32
+void print_trace(void)
+{
+}
+#else
+#include <execinfo.h>
+void
+print_trace (void)
+{
+  void *array[10];
+  size_t size;
+  char **strings;
+  size_t i;
+
+  size = backtrace (array, 10);
+  strings = backtrace_symbols (array, size);
+
+  printf ("Obtained %zd stack frames.\n", size);
+
+  for (i = 0; i < size; i++)
+     printf ("%s\n", strings[i]);
+
+  free (strings);
+}
+#endif
+
 namespace graphene {
 	namespace chain {
 
@@ -82,6 +112,7 @@ namespace graphene {
 			}
 			invoke_contract_result.invoker = o.owner_addr;
 			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
+			address fid = contract_register_operation::get_first_contract_id();
 
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
@@ -102,8 +133,50 @@ namespace graphene {
 			int exception_code = 0;
 			string exception_msg;
             gas_count = o.init_cost;
+			origin_op = o;
+
+
 			try {
-				origin_op = o;
+			if (!d.has_contract(fid))
+					origin_op.contract_id = fid;
+			new_contract.contract_address = origin_op.contract_id;
+			new_contract.code = o.contract_code;
+			new_contract.owner_address = o.owner_addr;
+			new_contract.create_time = o.register_time;
+			new_contract.inherit_from = o.inherit_from;
+			new_contract.registered_trx = get_current_trx_id();
+			new_contract.registered_block = d.head_block_num() + 1;
+			if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
+				new_contract.type_of_contract = contract_based_on_template;
+			auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+			if (obj_op.valid())
+			{
+				
+				/*invoke_contract_result.reset();
+				invoke_contract_result.acctual_fee = obj_op->acctual_fee;
+				invoke_contract_result.exec_succeed = true;
+				invoke_contract_result.validate();*/
+				invoke_contract_result.transfer_from_obj(*obj_op);
+				gas_count = obj_op->gas;
+				unspent_fee = total_fee - obj_op->acctual_fee;
+				if (!invoke_contract_result.maybe_invalid() )
+				{
+					if_store = false;
+					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+				}
+				if_store = true;
+				d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				invoke_contract_result = contract_invoke_result();
+			}
+			// verify contract bytecode stream format
+			auto L = engine->scope()->L();
+			auto code_stream = uvm::lua::api::global_uvm_chain_api->get_bytestream_from_code(L, o.contract_code);
+			if (!code_stream)
+				throw uvm::core::UvmException("invalid contract bytecode format");
+			char contract_format_err[LUA_COMPILE_ERROR_MAX_LENGTH] = { 0 };
+			if(!uvm::lua::lib::check_contract_bytecode_stream(L, code_stream.get(), contract_format_err))
+				throw uvm::core::UvmException("invalid contract bytecode format");
+			lua_pop(L, 1); // pop stream
 				engine->set_caller(o.owner_pubkey.to_base58(), (string)(o.owner_addr));
 				engine->set_state_pointer_value("register_evaluate_state", this);
 				engine->clear_exceptions();
@@ -119,10 +192,13 @@ namespace graphene {
 				}
 				//catch(fc::exception &e)
 				//{
+					// printf("contract execut error %s\n", e.to_detail_string().c_str());
+					// FC_RETHROW_EXCEPTION( e, fc::log_level::info, "", FC_FORMAT_ARG_PARAMS("") );
 				//	FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.to_string(), ("error", e.to_string()));
 				//}
 				catch (std::exception &e)
 				{
+					print_trace();
 					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 					// FC_CAPTURE_AND_THROW(blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 				}
@@ -133,20 +209,12 @@ namespace graphene {
 
 				
                 gas_count = gas_used_counts;	
-				new_contract.contract_address = origin_op.contract_id;
-				string fid_str = string(new_contract.contract_address);
-                new_contract.code = o.contract_code;
-                new_contract.owner_address = o.owner_addr;
-                new_contract.create_time = o.register_time;
-                new_contract.inherit_from = o.inherit_from;
-				new_contract.registered_trx = get_current_trx_id();
-                new_contract.registered_block = d.head_block_num() + 1;
-                if ((!(o.contract_code != uvm::blockchain::Code())) || o.inherit_from != address())
-                    new_contract.type_of_contract = contract_based_on_template;
                 unspent_fee = count_gas_fee(o.gas_price, o.init_cost) -count_gas_fee(o.gas_price, gas_used_counts);
 
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+				
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -172,7 +240,7 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
 			return contract_operation_result_info(invoke_contract_result.ordered_digest(),gas_count, invoke_contract_result.api_result);
 		}
 
@@ -198,7 +266,32 @@ namespace graphene {
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.owner_pubkey);
             		total_fee = o.fee.amount;
             		gas_count = o.init_cost;
+					origin_op = o;
 			try {
+				new_contract.contract_address = o.calculate_contract_id();
+				new_contract.type_of_contract = contract_type::native_contract;
+				new_contract.native_contract_key = o.native_contract_key;
+				new_contract.owner_address = o.owner_addr;
+				new_contract.create_time = o.register_time;
+				new_contract.inherit_from = address();
+				new_contract.registered_block = d.head_block_num() + 1;
+				auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				if (obj_op.valid())
+				{
+					invoke_contract_result.transfer_from_obj(*obj_op);
+					gas_count = obj_op->gas;
+					unspent_fee = total_fee - obj_op->acctual_fee;
+					if (!invoke_contract_result.maybe_invalid())
+					{
+						if_store = false;
+						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					}
+					if_store = true;
+					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+					invoke_contract_result = contract_invoke_result();
+				}
+
+
 				FC_ASSERT(native_contract_finder::has_native_contract_with_key(o.native_contract_key));
 				auto limit = o.init_cost;
 				if (limit < 0 || limit == 0)
@@ -229,16 +322,11 @@ namespace graphene {
 
 				this->invoke_contract_result = invoke_result;
 
-				new_contract.contract_address = o.calculate_contract_id();
-				new_contract.type_of_contract = contract_type::native_contract;
-				new_contract.native_contract_key = o.native_contract_key;
-				new_contract.owner_address = o.owner_addr;
-				new_contract.create_time = o.register_time;
-                		new_contract.inherit_from = address();
-                		new_contract.registered_block = d.head_block_num() + 1;
                 		unspent_fee = count_gas_fee(o.gas_price, o.init_cost) - count_gas_fee(o.gas_price, gas_used_counts);
                 		invoke_result.acctual_fee = total_fee - unspent_fee;
                 		invoke_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -261,8 +349,7 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
-
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -278,7 +365,7 @@ namespace graphene {
 				throw_over_limit = true;
 			}
             //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
-
+			origin_op = o;
 			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
@@ -292,7 +379,21 @@ namespace graphene {
 			try {
 				if (!global_uvm_chain_api)
                                                 global_uvm_chain_api = new UvmChainApi();
-
+				auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				if (obj_op.valid())
+				{
+					invoke_contract_result.transfer_from_obj(*obj_op);
+					gas_count = obj_op->gas;
+					unspent_fee = total_fee - obj_op->acctual_fee;
+					if (!invoke_contract_result.maybe_invalid())
+					{
+						if_store = false;
+						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					}
+					if_store = true;
+					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+					invoke_contract_result = contract_invoke_result();
+				}
 				if (contract.type_of_contract==contract_type::native_contract)
 				{
 					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
@@ -324,8 +425,6 @@ namespace graphene {
 					::blockchain::contract_engine::ContractEngineBuilder builder;
 					auto engine = builder.build();
 					int exception_code = 0;
-				
-					origin_op = o;
 					engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
 					engine->set_state_pointer_value("invoke_evaluate_state", this);
 					engine->clear_exceptions();
@@ -347,6 +446,7 @@ namespace graphene {
 					//}
 					catch (std::exception &e)
 					{
+						print_trace();
 						//printf("invoke contract error: %s\n", e.what());
 						FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 						// FC_THROW_EXCEPTION(fc::assert_exception, "contract vm execute internal error", ("error", e.what()));
@@ -358,10 +458,15 @@ namespace graphene {
 					if(!offline)
 						FC_ASSERT(gas_used_counts <= o.invoke_cost && gas_used_counts > 0, "costs of execution can be only between 0 and invoke_cost");
 
+					if(o.contract_api == "start_new_bet")
+                                                printf("gas_used_counts: %d\n", gas_used_counts); // FIXME
+
                     unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -389,7 +494,7 @@ namespace graphene {
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
 
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -417,7 +522,24 @@ namespace graphene {
             total_fee = o.fee.amount;
 			this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
 			gas_count = 0;
-            if(contract.code.abi.find("on_upgrade") != contract.code.abi.end())
+			origin_op = o;
+			auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+			if (obj_op.valid())
+			{
+				invoke_contract_result.transfer_from_obj(*obj_op);
+				gas_count = obj_op->gas;
+				unspent_fee = total_fee - obj_op->acctual_fee;
+				if (!invoke_contract_result.maybe_invalid())
+				{
+					if_store = false;
+					return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+				}
+				if_store = true;
+				d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				invoke_contract_result = contract_invoke_result();
+			}
+
+            if(contract.type_of_contract != native_contract &&contract.code.abi.find("on_upgrade") != contract.code.abi.end())
             { 
 			try {
                 gas_count = o.invoke_cost;
@@ -454,8 +576,6 @@ namespace graphene {
 					::blockchain::contract_engine::ContractEngineBuilder builder;
 					auto engine = builder.build();
 					int exception_code = 0;
-
-					origin_op = o;
 					engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
 					engine->set_state_pointer_value("upgrade_evaluate_state", this);
 					engine->clear_exceptions();
@@ -476,6 +596,7 @@ namespace graphene {
 					//}
 					catch (std::exception &e)
 					{
+						print_trace();
 						FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 						// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 					}
@@ -489,6 +610,8 @@ namespace graphene {
 				}
                 invoke_contract_result.acctual_fee = total_fee - unspent_fee;
                 invoke_contract_result.exec_succeed = true;
+
+				invoke_contract_result.validate();
 			}
 			catch (::blockchain::contract_engine::contract_run_out_of_money& e)
 			{
@@ -509,15 +632,72 @@ namespace graphene {
 			//}
 			catch (std::exception &e)
 			{
+				print_trace();
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
             }
-            else
+			else if (contract.type_of_contract == native_contract)
+			{
+				FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
+
+				try {
+					FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
+					auto limit = o.invoke_cost;
+					if (limit < 0 || limit == 0)
+						FC_CAPTURE_AND_THROW(blockchain::contract_engine::invalid_contract_gas_limit);
+					gas_limit = limit;
+					auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
+					FC_ASSERT(native_contract);
+
+					if (!global_uvm_chain_api)
+						global_uvm_chain_api = new UvmChainApi();
+
+					native_contract->invoke("on_upgrade", "");
+					auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
+
+					gas_used_counts = native_contract->gas_count_for_api_invoke("init");
+					auto storage_gas = invoke_result.count_storage_gas();
+					auto event_gas = invoke_result.count_event_gas();
+					FC_ASSERT(storage_gas >= 0, "storage gas invalid");
+					FC_ASSERT(event_gas >= 0, "event gas invalid");
+					gas_used_counts += storage_gas;
+					gas_used_counts += event_gas;
+					FC_ASSERT(gas_used_counts <= limit && gas_used_counts > 0, "costs of execution can be only between 0 and init_cost");
+					auto register_fee = native_contract_register_fee;
+
+
+					gas_count = gas_used_counts;
+					unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
+					invoke_result.acctual_fee = total_fee - unspent_fee;
+					invoke_result.exec_succeed = true;
+					this->invoke_contract_result = invoke_result;
+				}
+				catch (::blockchain::contract_engine::contract_run_out_of_money& e)
+				{
+					if (throw_over_limit)
+						FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_run_out_of_money, (("error", e.what())));
+					undo_contract_effected(total_fee);
+					unspent_fee = 0;
+				}
+				catch (const ::blockchain::contract_engine::contract_error& e)
+				{
+					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
+					// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::contract_error, (("error", e.what())));
+				}
+				catch (std::exception &e)
+				{
+					print_trace();
+					FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
+					// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
+				}
+
+
+			}else
             {
                 unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
             }
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -532,18 +712,51 @@ namespace graphene {
             {
                 
                 d.store_contract(new_contract);
+				related_contract.insert(new_contract.contract_address);
                 if (new_contract.inherit_from != address())
                 {
                     auto base_contract = d.get_contract(new_contract.inherit_from);
                     base_contract.derived.push_back(new_contract.contract_address);
                     d.update_contract(base_contract);
                 }
+				//auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
                 apply_storage_change(d,new_contract.registered_block, trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.owner_addr);
                 do_apply_balance();
-            }
+				auto handled_contract = ContractEntryPrintable(new_contract);
+				auto ofa = handled_contract.code_printable.offline_abi;
+				std::vector<std::string> std_offline_abi;
+				std_offline_abi.emplace_back("dumpData");
+				std_offline_abi.emplace_back("owner");
+				std_offline_abi.emplace_back("owner_assets");
+				std_offline_abi.emplace_back("sell_orders");
+				std_offline_abi.emplace_back("sell_orders_num");
+				std_offline_abi.emplace_back("state");
+				bool is_otc_contract = true;
+				for (auto abi : std_offline_abi) {
+					auto exist = ofa.count(abi);
+					if (!exist) {
+						is_otc_contract = false;
+						break;
+					}
+				}
+				//if (is_otc_contract)
+				//{
+				//	auto str_contract_addr = new_contract.contract_address.address_to_string();
+				//	auto range = d.get_index_type<otc_contract_index_index>().indices().get<by_otc_contract_id>().equal_range(str_contract_addr);
+				//	if (range.first == range.second)
+				//	{
+				//		d.create<otc_contract_object>([&](otc_contract_object& obj) {
+				//			obj.contract_address = str_contract_addr;
+				//			obj.block_num = -1;
+				//		});
+				//	}
+    //        }
 
+				do_apply_history();
+            }
+			if (if_store)
             d.store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num,invoke_contract_result, gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
@@ -556,13 +769,16 @@ namespace graphene {
 			database& d = db();
 			// commit contract result to db
 			d.store_contract(new_contract);
+			related_contract.insert(new_contract.contract_address);
             apply_storage_change(d, new_contract.registered_block, trx_id);
 			//do_apply_fees_balance(o.owner_addr);
 			do_apply_contract_event_notifies();
-
+			do_apply_history();
             }
 			invoke_contract_result.contract_registed = new_contract.contract_address;
+			if (if_store)
             db().store_invoke_result(trx_id, gen_eval->get_trx_eval_state()->op_num, invoke_contract_result, gas_count);
+			
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -572,14 +788,15 @@ namespace graphene {
                 database& d = db();
                 FC_ASSERT(d.has_contract(o.contract_id));
                 auto trx_id = get_current_trx_id();
-                // commit contract result to db
-
                 apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
+				do_apply_history();
             }
+			if(if_store)
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
+			
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
@@ -594,19 +811,28 @@ namespace graphene {
                 contract.contract_desc = o.contract_desc;
                 d.update_contract(contract);
                 auto trx_id = get_current_trx_id();
-                // commit contract result to db
                 apply_storage_change(d, d.head_block_num(), trx_id);
                 do_apply_contract_event_notifies();
                 //do_apply_fees_balance(origin_op.caller_addr);
                 do_apply_balance();
-
+				do_apply_history();
             }
+			if (if_store)
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
 		}
 
 		void contract_register_evaluate::pay_fee() {
             pay_fee_and_refund();
+		}
+
+		bool contract_register_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
+		{
+			if (contract_register_operation::get_first_contract_id() == addr)
+				return true;
+			if (origin_op.contract_id == addr)
+				return true;
+			return false;
 		}
 
 		void native_contract_register_evaluate::pay_fee() {
@@ -826,7 +1052,24 @@ namespace graphene {
             this->caller_pubkey = std::make_shared<fc::ecc::public_key>(o.caller_pubkey);
             total_fee = o.fee.amount;
 			gas_count = 0;
+			origin_op = o;
             try {
+				auto obj_op = d.get_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+				if (obj_op.valid())
+				{
+					invoke_contract_result.transfer_from_obj(*obj_op);
+					gas_count = obj_op->gas;
+					unspent_fee = total_fee - obj_op->acctual_fee;
+					related_contract.insert(o.contract_id);
+					if (!invoke_contract_result.maybe_invalid())
+					{
+						if_store = false;
+						return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
+					}
+					if_store = true;
+					d.remove_contract_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num);
+					invoke_contract_result = contract_invoke_result();
+				}
                 if (contract.type_of_contract == contract_type::native_contract)
                 {
                     FC_ASSERT(native_contract_finder::has_native_contract_with_key(contract.native_contract_key));
@@ -836,9 +1079,10 @@ namespace graphene {
 					gas_limit = limit;
                     auto native_contract = native_contract_finder::create_native_contract_by_key(this, contract.native_contract_key, o.contract_id);
                     FC_ASSERT(native_contract);
-			if (o.amount.amount > 0) {
-				native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
-			}
+			deposit_to_contract(o.contract_id, o.amount);
+		    //if (o.amount.amount > 0) { // only can used without before deposit_to_contract
+	           //		native_contract->current_set_on_deposit_asset(o.amount.asset_id(d).symbol, o.amount.amount.value);
+		   //}
 		   if (native_contract->has_api("on_deposit_asset"))
 		   {
                         gas_count = o.invoke_cost;
@@ -866,12 +1110,15 @@ namespace graphene {
                         unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost) - count_gas_fee(o.gas_price, gas_used_counts);
 		    }
 		    else {
+			auto invoke_result = *static_cast<contract_invoke_result*>(native_contract->get_result());
+                        this->invoke_contract_result = invoke_result;
 			unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 		    }
+
+			invoke_contract_result.validate();
                 }
                 else
                 {
-			deposit_to_contract(o.contract_id, o.amount);
 					if (contract.code.abi.find("on_deposit_asset") != contract.code.abi.end())
 					{
 
@@ -882,8 +1129,6 @@ namespace graphene {
 						::blockchain::contract_engine::ContractEngineBuilder builder;
 						auto engine = builder.build();
 						int exception_code = 0;
-
-						origin_op = o;
 						engine->set_caller(o.caller_pubkey.to_base58(), (string)(o.caller_addr));
 						engine->set_state_pointer_value("transfer_evaluate_state", this);
 						engine->clear_exceptions();
@@ -909,6 +1154,7 @@ namespace graphene {
 						//}
 						catch (std::exception &e)
 						{
+							print_trace();
 							FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 							// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 						}
@@ -922,6 +1168,7 @@ namespace graphene {
 					}
 					else
 					{
+						deposit_to_contract(o.contract_id, o.amount);
 						unspent_fee = count_gas_fee(o.gas_price, o.invoke_cost);
 					}
                 }
@@ -949,7 +1196,7 @@ namespace graphene {
 				FC_THROW_EXCEPTION(fc::assert_exception, std::string("contract execute error ") + e.what(), ("error", e.what()));
 				// FC_CAPTURE_AND_THROW(::blockchain::contract_engine::uvm_executor_internal_error, (("error", e.what())));
 			}
-
+			invoke_contract_result.acctual_fee = total_fee - unspent_fee;
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
 
@@ -965,9 +1212,11 @@ namespace graphene {
 
                 do_apply_contract_event_notifies();
                 do_apply_balance();
+				do_apply_history();
                 if(!gen_eval->get_trx_eval_state()->testing)
                     db_adjust_balance(o.caller_addr, asset(-o.amount.amount, o.amount.asset_id));
             }
+			if (if_store)
             db().store_invoke_result(get_current_trx_id(), gen_eval->get_trx_eval_state()->op_num, invoke_contract_result,gas_count);
             return contract_operation_result_info(invoke_contract_result.ordered_digest(), gas_count, invoke_contract_result.api_result);
         }
@@ -1035,6 +1284,8 @@ namespace graphene {
         }
         std::shared_ptr<uvm::blockchain::Code> contract_common_evaluate::get_contract_code_from_db_by_id(const string & contract_id) const
         {
+	    if(!address::is_valid(contract_id))
+		return nullptr;
             address contract_addr(contract_id);
             if (!get_db().has_contract(contract_addr))
                 return nullptr;
@@ -1121,9 +1372,9 @@ namespace graphene {
         //}
         void contract_common_evaluate::do_apply_balance()
         {
-			auto trx_id = get_current_trx_id();
             for (auto to_contract = invoke_contract_result.deposit_contract.begin(); to_contract != invoke_contract_result.deposit_contract.end(); to_contract++)
             {
+				related_contract.insert(to_contract->first.first);
 				if (to_contract->second != 0)
 				{
 					get_db().adjust_balance(to_contract->first.first, asset(to_contract->second, to_contract->first.second));
@@ -1131,6 +1382,7 @@ namespace graphene {
             }
             for (auto to_withraw = invoke_contract_result.contract_withdraw.begin(); to_withraw != invoke_contract_result.contract_withdraw.end(); to_withraw++)
             {
+				related_contract.insert(to_withraw->first.first);
                 if (to_withraw->second != 0)
 				{
 					get_db().adjust_balance(to_withraw->first.first, asset(0 - to_withraw->second, to_withraw->first.second));
@@ -1142,6 +1394,12 @@ namespace graphene {
                 if (to_deposit->second != 0)
                     get_db().adjust_balance(to_deposit->first.first, asset(to_deposit->second, to_deposit->first.second));
             }
+
+        }
+
+		void contract_common_evaluate::do_apply_history()
+		{
+			auto trx_id = get_current_trx_id();
 			for (auto addr : related_contract)
 			{
 				get_db().store_contract_related_transaction(trx_id, addr);
@@ -1422,7 +1680,7 @@ namespace graphene {
 		 {
 			 return gas_limit;
 		 }
-         void contract_common_evaluate::apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id) const
+         void contract_common_evaluate::apply_storage_change(database& d, uint32_t block_num, const transaction_id_type & trx_id)
          {
 
              set<address> contracts;
@@ -1438,16 +1696,19 @@ namespace graphene {
                      const auto &storage_name = pair2.first;
                      const auto &change = pair2.second;
                      d.set_contract_storage(contract_addr, storage_name, change.after);
+					 if (if_store)
                      d.add_contract_storage_change(trx_id, contract_addr, storage_name, change.storage_diff);
+					
                  }
              }
              for(auto& addr:contracts)
              {
+				 this->related_contract.insert(addr);
                  d.store_contract_storage_change_obj(addr, block_num);
              }
          }
 		 std::string contract_common_evaluate::get_address_role(const std::string& addr_str) const {
-			 // "guard" or "address" or "other"
+			 // "senator" or "address" or "other"
 			 try {
 				 FC_ASSERT(graphene::chain::address::is_valid(addr_str));
 				 const auto& account_idx = get_db().get_index_type<account_index>().indices();
@@ -1458,12 +1719,12 @@ namespace graphene {
 				 {
 					 return "address";
 				 }
-				 auto itr_guard = guard_idx.get<by_account>().find(itr->get_id());
-				 if (itr_guard != guard_idx.get<by_account>().end() && itr_guard->formal == true)
-					 return "guard";
-				 auto itr_miner = miner_idx.get<by_account>().find(itr->get_id());
-				 if (itr_miner != miner_idx.get<by_account>().end())
-					 return "miner";
+				 auto itr_senator = guard_idx.get<by_account>().find(itr->get_id());
+				 if (itr_senator != guard_idx.get<by_account>().end() && itr_senator->formal == true)
+					 return "senator";
+				 auto itr_citizen = miner_idx.get<by_account>().find(itr->get_id());
+				 if (itr_citizen != miner_idx.get<by_account>().end())
+					 return "citizen";
 				 return "address";
 			 }
 			 catch (...)
@@ -1471,6 +1732,17 @@ namespace graphene {
 				 return "other";
 			 }
 		 }
+
+		 bool contract_common_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
+		 {
+			 return get_db().has_contract(addr, method);
+		 }
+
+		 bool contract_common_evaluate::has_contract_of_name(const string& addr, const string& method /*= ""*/)
+		 {
+			 return get_db().has_contract_of_name(addr);
+		 }
+
          bool contract_common_evaluate::check_fee_for_gas(const address& addr, const gas_count_type& gas_count, const  gas_price_type& gas_price) const
          {
              auto obj=get_db().get_asset(GRAPHENE_SYMBOL);

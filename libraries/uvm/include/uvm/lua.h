@@ -11,7 +11,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-
+#include "cborcpp/cbor_object.h"
 
 #include "uvm/luaconf.h"
 
@@ -148,7 +148,6 @@ extern const char lua_ident[];
 */
 LUA_API lua_State *(lua_newstate)(lua_Alloc f, void *ud);
 LUA_API void       (lua_close)(lua_State *L);
-LUA_API lua_State *(lua_newthread)(lua_State *L);
 
 LUA_API lua_CFunction(lua_atpanic) (lua_State *L, lua_CFunction panicf);
 
@@ -192,6 +191,7 @@ LUA_API void	       *(lua_touserdata)(lua_State *L, int idx);
 LUA_API lua_State      *(lua_tothread)(lua_State *L, int idx);
 LUA_API const void     *(lua_topointer)(lua_State *L, int idx);
 
+LUA_API void lua_settableonlyread(lua_State *L, int idx, bool isOnlyRead);
 
 /*
 ** Comparison and arithmetic functions
@@ -300,18 +300,17 @@ LUA_API int (lua_dump)(lua_State *L, lua_Writer writer, void *data, int strip);
 #define INSTRUCTIONS_EXECUTED_COUNT_LUA_STATE_MAP_KEY "instructions_executed_count"
 #define LUA_STATE_STOP_TO_RUN_IN_LVM_STATE_MAP_KEY "stop_in_lvm"
 #define LUA_TABLE_MAP_LIST_STATE_MAP_KEY "uvm_table_map_list_in_memory_pool"
-// state_mapAPIIDkey
-#define GLUA_CONTRACT_API_CALL_STACK_STATE_MAP_KEY "uvm_contract_api_call_stack_state_map_key"
+
 
 LUA_API int (lua_docompiledfile)(lua_State *L, const char *filename);
 
 LUA_API int (lua_docompiled_bytestream)(lua_State *L, void *stream);
 
 LUA_API int (lua_execute_contract_api)(lua_State *L, const char *contract_name,
-	const char *api_name, const char *arg1, std::string *result_json_string=nullptr);
+	const char *api_name, cbor::CborArrayValue& args, std::string *result_json_string=nullptr);
 
 LUA_API int (lua_execute_contract_api_by_address)(lua_State *L, const char *address,
-	const char *api_name, const char *arg1, std::string *result_json_string);
+	const char *api_name, cbor::CborArrayValue& args, std::string *result_json_string);
 
 /*
 ** coroutine functions

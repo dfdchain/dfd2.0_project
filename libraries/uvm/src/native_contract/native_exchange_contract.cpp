@@ -418,6 +418,14 @@ namespace uvm {
 			int64_t totalMakerSpentNum = 0;
 
 			std::string takerType = orderInfo.type;
+			/*
+			{"OrderType":"sell","putOnOrder":"128,5,test11,2a96ff7713b7e8c6e34dab2
+			de5c2a5844bbc60435b12da5495324d19f0d61853","exchangPair":"HC/COIN","transactionB
+			uys":["0,0,test12,bd3bbc9fbc9a09eb43fd952cac840104f4fa0c9f54795e14af8938fff5a10f
+			de,125,6,125,6"],"transactionSells":["0,0,test11,2a96ff7713b7e8c6e34dab2de5c2a5
+			844bbc60435b12da5495324d19f0d61853,125,6,125,6"],"transactionResult":"FULL_COM
+			PLETED","totalExchangeBaseAmount":125,"totalExchangeQuoteAmount":6}
+			*/
 			bool takerIsBuy = false;
 			if (takerOrderType == "buy") {
 				takerIsBuy = true;
@@ -566,7 +574,7 @@ namespace uvm {
 			return;
 		}
 
-
+		//order: {'spentNum': 5, 'getNum': 49, 'order': {'sig': u'20634c5058e1eaa0bb89109cea606b8f3384d4b30b6a74c1009e9a02950108ff0a4fc6d38071974d415403bcd3fa2b4a0d61b707a934e7cf9a1c4f768095a46bae', 'id': u'a406b62974e79044432363d7c609d1f14ccff5f9f94e2c54ce75778ed1a3b7d3', 'orderInfo': '{"nonce": "2019-04-02 14:23:23.906000 50", "purchaseAsset": "COIN", "fee": "0.1", "payNum": 10, "relayer": "SSS", "payAsset": "HC", "purchaseNum": 98, "type": "sell"}'}}
 		void exchange_native_contract::fillOrder_api(const std::string& api_name, const std::string& api_args_utf8)
 		{
 			if (get_storage_state() != common_state_of_exchange_contract)
@@ -719,6 +727,7 @@ namespace uvm {
 			}
 
 			current_transfer_to_address(caller, symbol, amount);
+			//{"amount":35000,"realAmount":34996,"fee":4,"symbol":"HC","to_address":"test11"}
 			jsondiff::JsonObject event_arg;
 			event_arg["symbol"] = symbol;
 			event_arg["to_address"] = caller;

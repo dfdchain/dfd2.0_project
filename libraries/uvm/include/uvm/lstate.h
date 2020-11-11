@@ -12,6 +12,8 @@
 #include <list>
 #include <vector>
 #include <map>
+#include <stack>
+#include <cstddef>
 #include <unordered_map>
 
 #include "uvm/lua.h"
@@ -20,8 +22,10 @@
 #include "uvm/ltm.h"
 #include "uvm/lzio.h"
 #include <uvm/uvm_api.h>
+#include <vmgc/vmgc.h>
+#include "uvm/lopcodes.h"
 
-#define LUA_MALLOC_TOTAL_SIZE	(50*1024*1024)
+#define LUA_MALLOC_TOTAL_SIZE	(500*1024*1024)
 
 #define LUA_COMPILE_ERROR_MAX_LENGTH 4096
 
@@ -56,13 +60,6 @@ struct lua_longjmp;  /* defined in ldo.c */
 /* kinds of Garbage Collection */
 #define KGC_NORMAL	0
 #define KGC_EMERGENCY	1	/* gc was forced by an allocation failure */
-
-
-typedef struct stringtable {
-    TString **hash;
-    int nuse;  /* number of elements */
-    int size;
-} stringtable;
 
 
 /*
@@ -114,48 +111,6 @@ of luaV_execute */
 #define setoah(st,v)	((st) = ((st) & ~CIST_OAH) | (v))
 #define getoah(st)	((st) & CIST_OAH)
 
-
-/*
-** 'global state', shared by all threads of this state
-*/
-typedef struct global_State {
-    lua_Alloc frealloc;  /* function to reallocate memory */
-    void *ud;         /* auxiliary data to 'frealloc' */
-    l_mem totalbytes;  /* number of bytes currently allocated - GCdebt */
-    l_mem GCdebt;  /* bytes allocated not yet compensated by the collector */
-    lu_mem GCmemtrav;  /* memory traversed by the GC */
-    lu_mem GCestimate;  /* an estimate of the non-garbage memory in use */
-    stringtable strt;  /* hash table for strings */
-    TValue l_registry;
-    unsigned int seed;  /* randomized seed for hashes */
-    lu_byte currentwhite;
-    lu_byte gcstate;  /* state of garbage collector */
-    lu_byte gckind;  /* kind of GC running */
-    lu_byte gcrunning;  /* true if GC is running */
-    GCObject *allgc;  /* list of all collectable objects */
-    GCObject **sweepgc;  /* current position of sweep in list */
-    GCObject *finobj;  /* list of collectable objects with finalizers */
-    GCObject *gray;  /* list of gray objects */
-    GCObject *grayagain;  /* list of objects to be traversed atomically */
-    GCObject *weak;  /* list of tables with weak values */
-    GCObject *ephemeron;  /* list of ephemeron tables (weak keys) */
-    GCObject *allweak;  /* list of all-weak tables */
-    GCObject *tobefnz;  /* list of userdata to be GC */
-    GCObject *fixedgc;  /* list of objects not to be collected */
-    struct lua_State *twups;  /* list of threads with open upvalues */
-    unsigned int gcfinnum;  /* number of finalizers to call in each GC step */
-    int gcpause;  /* size of pause between successive GCs */
-    int gcstepmul;  /* GC 'granularity' */
-    lua_CFunction panic;  /* to be called in unprotected errors */
-    struct lua_State *mainthread;
-    const lua_Number *version;  /* pointer to version number */
-    TString *memerrmsg;  /* memory-error message */
-    TString *tmname[TM_N];  /* array with tag-method names */
-    struct Table *mt[LUA_NUMTAGS];  /* metatables for basic types */
-    TString *strcache[STRCACHE_N][STRCACHE_M];  /* cache for strings in API */
-} global_State;
-
-
 typedef struct UvmStatePreProcessorFunction
 {
     std::list<void*> args;
@@ -178,22 +133,44 @@ inline UvmStatePreProcessorFunction make_lua_state_preprocessor(std::list<void*>
 
 // typedef void(*LuaStatePreProcessor)(lua_State *L, void *ptr);
 
+struct lua_State;
+
+namespace uvm_types {
+	struct GcString;
+	struct GcTable;
+}
+
+typedef enum lua_VMState {
+	LVM_STATE_NONE = 0,
+
+	LVM_STATE_HALT = 1 << 0,
+	LVM_STATE_FAULT = 1 << 1,
+	LVM_STATE_BREAK = 1 << 2,
+	LVM_STATE_SUSPEND = 1 << 3
+} lua_VMState;
+
+struct contract_info_stack_entry {
+	std::string contract_id;
+	std::string storage_contract_id; // storage和余额使用的合约地址(可能代码和数据用的不是同一个合约的，因为delegate_call的存在)
+	std::string api_name;
+	std::string call_type;
+};
 
 /*
 ** 'per thread' state
 */
-struct lua_State {
-    CommonHeader;
+struct lua_State : vmgc::GcObject {
+	const static vmgc::gc_type type = LUA_TTHREAD;
+	int tt_ = LUA_TTHREAD;
+
     unsigned short nci;  /* number of items in 'ci' list */
     lu_byte status;
     StkId top;  /* first free slot in the stack */
-    global_State *l_G;
     CallInfo *ci;  /* call info for current function */
     const Instruction *oldpc;  /* last pc traced */
     StkId stack_last;  /* last free slot in the stack */
     StkId stack;  /* stack base */
     UpVal *openupval;  /* list of open upvalues in this stack */
-    GCObject *gclist;
     struct lua_State *twups;  /* list of threads with open upvalues */
     struct lua_longjmp *errorJmp;  /* current error recover point */
     CallInfo base_ci;  /* CallInfo for first level (C calling Lua) */
@@ -206,10 +183,6 @@ struct lua_State {
     unsigned short nCcalls;  /* number of nested C calls */
     lu_byte hookmask;
     lu_byte allowhook;
-    void *malloc_buffer; // malloc enough memory for the whole lua_state scope beforehand, and malloc/free in the buffer
-    ptrdiff_t malloc_pos; // used buffer size in malloc_buffer
-    std::vector<std::pair<ptrdiff_t, ptrdiff_t>> *malloced_buffers;
-	std::map<size_t, bool> *empty_buffers_positions; // position-in-malloced_buffers => true
     char compile_error[LUA_COMPILE_ERROR_MAX_LENGTH];
 	char runerror[LUA_VM_EXCEPTION_STRNG_MAX_LENGTH];
     FILE *in;
@@ -218,6 +191,19 @@ struct lua_State {
     bool force_stopping;
 	int exit_code;
     UvmStatePreProcessorFunction *preprocessor;
+	vmgc::GcState *gc_state;
+	lua_CFunction panic;  /* to be called in unprotected errors */
+	lua_Alloc frealloc;  /* function to reallocate memory */
+	void *ud;         /* auxiliary data to 'frealloc' */
+	TValue l_registry;
+	unsigned int seed;  /* randomized seed for hashes */
+	//stringtable strt;  /* hash table for strings */
+
+	const lua_Number *version;  /* pointer to version number */
+	uvm_types::GcString *memerrmsg;  /* memory-error message */
+	uvm_types::GcString *tmname[TM_N];  /* array with tag-method names */
+	uvm_types::GcTable *mt[LUA_NUMTAGS];  /* metatables for basic types */
+	uvm_types::GcString *strcache[STRCACHE_N][STRCACHE_M];  /* cache for strings in API */
 
 	std::list<intptr_t> *contract_table_addresses;
 	intptr_t allow_contract_modify; // contract table pointer whose properties can be modified now
@@ -226,7 +212,18 @@ struct lua_State {
 	StkId evalstacktop;//first free slot
 	int evalstacksize;
 
+	lua_VMState state;
+	bool allow_debug;
+	std::map<std::string, std::list<uint32_t> >* breakpoints; // contract_address => list of line_number
+	std::stack<contract_info_stack_entry>* using_contract_id_stack;
+	bool next_delegate_call_flag = false;
+	OpCode call_op_msg;
+	uint32_t ci_depth;
+    
 	int cbor_diff_state; // 0: not_set, 1: true, 2: false
+
+	inline lua_State() :tt_(LUA_TTHREAD) {}
+	virtual ~lua_State() {}
 };
 
 void *lua_malloc(lua_State *L, size_t size);
@@ -240,46 +237,34 @@ void lua_free(lua_State *L, void *address);
 
 #define state_G(L)	(L->l_G)
 
-
-/*
-** Union of all collectable objects (only for conversions)
-*/
-union GCUnion {
-    GCObject gc;  /* common header */
-    struct TString ts;
-    struct Udata u;
-    union Closure cl;
-    struct Table h;
-    struct Proto p;
-    struct lua_State th;  /* thread */
-};
-
-
 #define cast_u(o)	lua_cast(union GCUnion *, (o))
 
 /* macros to convert a GCObject into a specific value */
 #define gco2ts(o)  \
-	check_exp(novariant((o)->tt) == LUA_TSTRING, &((cast_u(o))->ts))
-#define gco2u(o)  check_exp((o)->tt == LUA_TUSERDATA, &((cast_u(o))->u))
-#define gco2lcl(o)  check_exp((o)->tt == LUA_TLCL, &((cast_u(o))->cl.l))
-#define gco2ccl(o)  check_exp((o)->tt == LUA_TCCL, &((cast_u(o))->cl.c))
+	check_exp(novariant((o)->tt) == LUA_TSTRING, (((uvm_types::GcString*)(o))))
+#define gco2u(o)  check_exp((o)->tt == LUA_TUSERDATA, (((uvm_types::GcUserdata*)(o))))
+#define gco2lcl(o)  check_exp((o)->tt == LUA_TLCL, ((uvm_types::GcLClosure*)(o)))
+#define gco2ccl(o)  check_exp((o)->tt == LUA_TCCL, ((uvm_types::GcCClosure*)(o)))
 #define gco2cl(o)  \
-	check_exp(novariant((o)->tt) == LUA_TFUNCTION, &((cast_u(o))->cl))
-#define gco2t(o)  check_exp((o)->tt == LUA_TTABLE, &((cast_u(o))->h))
-#define gco2p(o)  check_exp((o)->tt == LUA_TPROTO, &((cast_u(o))->p))
-#define gco2th(o)  check_exp((o)->tt == LUA_TTHREAD, &((cast_u(o))->th))
+	check_exp(novariant((o)->tt) == LUA_TFUNCTION, ((uvm_types::GcClosure*)(o)))
+#define gco2t(o)  check_exp((o)->tt == LUA_TTABLE, (((uvm_types::GcTable*)(o))))
+#define gco2p(o)  check_exp((o)->tt == LUA_TPROTO, (((uvm_types::GcProto*)(o))))
+#define gco2th(o)  check_exp((o)->tt == LUA_TTHREAD, ((lua_State*)(o)))
 
 
 /* macro to convert a Lua object into a GCObject */
 #define obj2gco(v) \
 	check_exp(novariant((v)->tt) < LUA_TDEADKEY, (&(cast_u(v)->gc)))
 
+/* macro to convert a Lua object into a vmgc::GcObject */
+#define obj2vmgco(v) \
+	check_exp(novariant((v)->tt_) < LUA_TDEADKEY, (&(v->gco)))
+
 
 /* actual number of total bytes allocated */
 #define gettotalbytes(g)	lua_cast(lu_mem, (g)->totalbytes + (g)->GCdebt)
 
-LUAI_FUNC void luaE_setdebt(global_State *g, l_mem debt);
-LUAI_FUNC void luaE_freethread(lua_State *L, lua_State *L1);
+LUAI_FUNC void luaE_setdebt(l_mem debt);
 LUAI_FUNC CallInfo *luaE_extendCI(lua_State *L);
 LUAI_FUNC void luaE_freeCI(lua_State *L);
 LUAI_FUNC void luaE_shrinkCI(lua_State *L);

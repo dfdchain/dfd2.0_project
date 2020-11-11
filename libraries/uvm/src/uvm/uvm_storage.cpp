@@ -80,6 +80,7 @@ static struct UvmStorageValue get_last_storage_changed_value(lua_State *L, const
 			value_to_store.pointer_value = list;
 			uvm::lua::lib::set_lua_state_value(L, LUA_STORAGE_CHANGELIST_KEY, value_to_store, LUA_STATE_VALUE_POINTER);
 		}
+
 		UvmStorageChangeItem change_item;
 		change_item.before = value;
 		change_item.after = value;
@@ -103,7 +104,7 @@ static struct UvmStorageValue get_last_storage_changed_value(lua_State *L, const
 
 static std::string get_contract_id_string_in_storage_operation(lua_State *L)
 {
-	return uvm::lua::lib::get_current_using_contract_id(L);
+	return uvm::lua::lib::get_current_using_storage_contract_id(L);
 }
 
 static std::string global_key_for_storage_prop(const std::string& contract_id, const std::string& key, const std::string& fast_map_key, bool is_fast_map)
@@ -553,6 +554,8 @@ static bool has_property_changed_in_changelist(UvmStorageChangeList *list, std::
 	}
 	return false;
 }
+
+
 bool luaL_commit_storage_changes(lua_State *L)
 {
 	UvmStateValueNode storage_changelist_node = uvm::lua::lib::get_lua_state_value_node(L, LUA_STORAGE_CHANGELIST_KEY);
@@ -583,15 +586,25 @@ bool luaL_commit_storage_changes(lua_State *L)
 		uvm::lua::lib::set_lua_state_value(L, LUA_STORAGE_CHANGELIST_KEY, value_to_store, LUA_STATE_VALUE_POINTER);
 		storage_changelist_node.value.pointer_value = list;
 	}
+
 	if (storage_changelist_node.type == LUA_STATE_VALUE_POINTER && nullptr != storage_changelist_node.value.pointer_value)
 	{
 		UvmStorageChangeList *list = (UvmStorageChangeList*)storage_changelist_node.value.pointer_value;
 		
-		if (list->size() > 0) {
-			auto first_it = list->begin();
-			if (first_it->after.type == uvm::blockchain::StorageValueTypes::storage_value_null&&
-				first_it->before.type == uvm::blockchain::StorageValueTypes::storage_value_null) {
-				list->pop_front();
+		bool mod_change_list = false;
+		int64_t mod_change_list_fork_height = -1;
+		if (global_uvm_chain_api) { //list->size()>0 ???
+			mod_change_list_fork_height = global_uvm_chain_api->get_fork_height(L, "MOD_CHANGE_LIST");
+			if (global_uvm_chain_api->get_header_block_num_without_gas(L) >= mod_change_list_fork_height) {
+				mod_change_list = true;
+				//fix bug, remove first null val
+				if (list->size() > 0) {
+					auto first_it = list->begin();
+					if (first_it->after.type == uvm::blockchain::StorageValueTypes::storage_value_null&&
+						first_it->before.type == uvm::blockchain::StorageValueTypes::storage_value_null) {
+						list->pop_front();
+					}
+				}
 			}
 		}
 		// merge initial tables here
@@ -622,11 +635,17 @@ bool luaL_commit_storage_changes(lua_State *L)
 			}
 			table_read_list->clear();
 		}
-
+		std::set<std::string> null_keys_changed;
 		for (auto it = list->begin(); it != list->end(); ++it)
 		{
 			UvmStorageChangeItem change_item = *it;
 			const auto& change_item_full_key = change_item.full_key();
+			if (!mod_change_list) {
+				if (global_uvm_chain_api->use_fast_map_set_nil(L)) {
+					if (change_item.is_fast_map && null_keys_changed.find(change_item_full_key) != null_keys_changed.end())
+						continue;
+				}
+			}
 			
 			auto found = changes.find(change_item.contract_id);
 			if (found != changes.end())
@@ -648,6 +667,10 @@ bool luaL_commit_storage_changes(lua_State *L)
 				auto contract_changes = std::make_shared<std::unordered_map<std::string, UvmStorageChangeItem>>();
 				contract_changes->insert(contract_changes->end(), std::make_pair(change_item_full_key, change_item));
 				changes.insert(changes.end(), std::make_pair(change_item.contract_id, contract_changes));
+			}
+			if (!mod_change_list) {  //if mod_change_list == true ,don't insert to null_keys_changed
+				if (change_item.after.type == uvm::blockchain::StorageValueTypes::storage_value_null)
+					null_keys_changed.insert(change_item_full_key);
 			}
 		}
 	}
@@ -907,14 +930,15 @@ namespace uvm {
 		{
 			uvm::lua::lib::increment_lvm_instructions_executed_count(L, CHAIN_GLUA_API_EACH_INSTRUCTIONS_COUNT - 1);
 
-			const auto &code_contract_id = get_contract_id_string_in_storage_operation(L);
-			if (code_contract_id != contract_id)
+			const auto &code_storage_contract_id = get_contract_id_string_in_storage_operation(L);
+			/*if (code_storage_contract_id != contract_id)
 			{
 				global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "contract can only access its own storage directly");
 				uvm::lua::lib::notify_lua_state_stop(L);
 				L->force_stopping = true;
 				return 0;
-			}
+			}*/
+			contract_id = code_storage_contract_id.c_str(); // storage改成只用当前所在合约
 			std::string fast_map_key_str = fast_map_key ? fast_map_key : "";
 			const auto &global_key = global_key_for_storage_prop(contract_id, name, fast_map_key_str, is_fast_map);
 			lua_getglobal(L, global_key.c_str());
@@ -962,10 +986,18 @@ namespace uvm {
 		int uvmlib_set_storage_impl(lua_State *L,
 			const char *contract_id, const char *name, const char* fast_map_key, bool is_fast_map, int value_index)
 		{
-			const auto &code_contract_id = get_contract_id_string_in_storage_operation(L);
-			if (code_contract_id != contract_id && code_contract_id != contract_id)
+			const auto &code_storage_contract_id = get_contract_id_string_in_storage_operation(L);
+			/*if (code_storage_contract_id != contract_id)
 			{
 				global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "contract can only access its own storage directly");
+				uvm::lua::lib::notify_lua_state_stop(L);
+				L->force_stopping = true;
+				return 0;
+			}*/
+			contract_id = code_storage_contract_id.c_str(); // storage改成只用当前所在合约
+			auto contract_id_stack = uvm::lua::lib::get_using_contract_id_stack(L, true);
+			if (contract_id_stack && contract_id_stack->size()>0 && contract_id_stack->top().call_type == "STATIC_CALL") {
+				global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, "static call can not modify contract storage");
 				uvm::lua::lib::notify_lua_state_stop(L);
 				L->force_stopping = true;
 				return 0;
@@ -982,7 +1014,6 @@ namespace uvm {
 			// FIXME: If this is a table, each time you create a new object, take up too much memory, and read too slow
 			// FIXME: When considering the commit to read storage changes, do not change every time
 			const auto &arg2 = lua_type_to_storage_value_type(L, value_index, 0);
-
 			if (lua_istable(L, value_index))
 			{
 				// add it to read_list if it's table, because it will be changed
@@ -1066,8 +1097,13 @@ namespace uvm {
 			if (is_fast_map && (after.type == uvm::blockchain::StorageValueTypes::storage_value_null)
 				&& (lua_storage_is_table(before.type))) {
 				if (global_uvm_chain_api) { 
-					lua_pushvalue(L, value_index);
-					lua_setglobal(L, global_key_for_storage_prop(contract_id, name, fast_map_key_str, is_fast_map).c_str());
+					int64_t mod_change_list_fork_height = global_uvm_chain_api->get_fork_height(L, "MOD_CHANGE_LIST");
+					if (global_uvm_chain_api->get_header_block_num_without_gas(L) >= mod_change_list_fork_height) {
+						// has been added to table_read_list when get_last_storage_changed_value
+						//set val
+						lua_pushvalue(L, value_index);
+						lua_setglobal(L, global_key_for_storage_prop(contract_id, name, fast_map_key_str, is_fast_map).c_str());
+					}
 				}
 
 			}

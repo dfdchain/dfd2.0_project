@@ -467,11 +467,12 @@ static int searcher_uvm(lua_State *L) {
             }
         }
     } stream_scope(L, name, stream.get());
-    LClosure *closure = uvm::lua::lib::luaU_undump_from_stream(L, stream.get(), uvm::lua::lib::unwrap_any_contract_name(origin_contract_name).c_str());
+    uvm_types::GcLClosure *closure = uvm::lua::lib::luaU_undump_from_stream(L, stream.get(), uvm::lua::lib::unwrap_any_contract_name(origin_contract_name).c_str());
 	if (!closure)
 	{
 		return 1;
 	}
+#if(CHECK_CONTRACT_CODE_EVERY_TIME)
     if (!uvm::lua::lib::check_contract_proto(L, closure->p, error))
     {
         if (strlen(L->compile_error) < 1)
@@ -481,6 +482,7 @@ static int searcher_uvm(lua_State *L) {
         global_uvm_chain_api->throw_exception(L, UVM_API_SIMPLE_ERROR, error ? error : "contract bytecode stream error");
         return 1;
     }
+#endif
 
     return checkload(L, (luaL_loadbufferx(L, stream->buff.data(), stream->buff.size(), stream->is_bytes ? "binary" : "text", nullptr) == LUA_OK), name);
 }

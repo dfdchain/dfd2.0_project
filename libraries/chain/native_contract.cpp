@@ -11,6 +11,7 @@
 #include <uvm/exceptions.h>
 #include <native_contract/native_token_contract.h>
 #include <native_contract/native_exchange_contract.h>
+#include <native_contract/native_uniswap_contract.h>
 
 namespace graphene {
 	namespace chain {
@@ -168,6 +169,7 @@ namespace graphene {
 			std::vector<std::string> native_contract_keys = {
 				uvm::contract::token_native_contract::native_contract_key()
 				, uvm::contract::exchange_native_contract::native_contract_key() 
+				, uvm::contract::uniswap_native_contract::native_contract_key()
 			};
 			return std::find(native_contract_keys.begin(), native_contract_keys.end(), key) != native_contract_keys.end();
 		}
@@ -183,9 +185,49 @@ namespace graphene {
 			{
 				return std::make_shared<uvm::contract::exchange_native_contract>(store);
 			}
+                        else if (key == uvm::contract::uniswap_native_contract::native_contract_key())
+                        {
+                                return std::make_shared<uvm::contract::uniswap_native_contract>(store);
+                        }
 			else
 			{
 				return nullptr;
+			}
+		}
+
+		std::set<std::string> native_contract_finder::get_native_contract_apis_by_key(const std::string & key)
+		{
+			if (key == uvm::contract::token_native_contract::native_contract_key())
+			{
+				return uvm::contract::token_native_contract(NULL).apis();
+			}
+			else if (key == uvm::contract::exchange_native_contract::native_contract_key())
+			{
+				return uvm::contract::exchange_native_contract(NULL).apis();
+			}
+			else if (key == uvm::contract::uniswap_native_contract::native_contract_key())
+                        {
+                                return uvm::contract::uniswap_native_contract(NULL).apis();
+                        }
+			else
+			{
+				return std::set<std::string>();
+			}
+		}
+
+		std::set<std::string> native_contract_finder::get_native_contract_offline_apis_by_key(const std::string& key)
+		{
+			if (key == uvm::contract::token_native_contract::native_contract_key())
+			{
+				return uvm::contract::token_native_contract(NULL).offline_apis();
+			}
+			else if (key == uvm::contract::exchange_native_contract::native_contract_key())
+			{
+				return uvm::contract::exchange_native_contract(NULL).offline_apis();
+			}
+			else
+			{
+				return std::set<std::string>();
 			}
 		}
 
@@ -212,7 +254,6 @@ namespace graphene {
 			fc::sha512::encoder enc;
 			std::pair<address, fc::time_point> info_to_digest(owner_addr, register_time);
 			fc::raw::pack(enc, info_to_digest);
-
 			id = address(fc::ripemd160::hash(enc.result()), addressVersion::CONTRACT);
 			return id;
 

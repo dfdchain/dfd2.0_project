@@ -17,6 +17,10 @@
 #include "uvm/uvm_api.h"
 #include <cborcpp/cbor.h>
 
+#include "lobject.h"
+//#include <fc/io/json.hpp>
+#include <fc/variant_object.hpp>
+
 
 
 /* extra error code for 'luaL_load' */
@@ -131,7 +135,7 @@ LUALIB_API void (luaL_requiref)(lua_State *L, const char *modname,
 int luaL_require_module(lua_State *L);
 
 LUA_API int lua_execute_contract_api_by_stream(lua_State *L, UvmModuleByteStream *stream,
-	const char *api_name, const char *arg1, std::string *result_json_string);
+	const char *api_name, cbor::CborArrayValue& args, std::string *result_json_string);
 
 size_t luaL_wrap_contract_apis(lua_State *L, int index, void *ud);
 
@@ -147,6 +151,10 @@ int luaL_import_contract_module_from_address(lua_State *L);
 std::shared_ptr<UvmModuleByteStream> lua_common_open_contract(lua_State *L, const char *name, char *error = nullptr);
 
 UvmTableMapP luaL_create_lua_table_map_in_memory_pool(lua_State *L);
+
+namespace fc {
+	void to_variant(std::map<std::string, TValue> m, variant& vo);
+}
 
 
 

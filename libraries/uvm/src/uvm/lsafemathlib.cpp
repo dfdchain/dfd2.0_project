@@ -73,7 +73,7 @@ static int safemath_bigint(lua_State *L) {
 		try {
 			value_hex = uvm::util::hex(int_str);
 		}
-		catch (const std::exception& e) {
+		catch (...) {
 			lua_pushnil(L);
 			return 1;
 		}
@@ -88,7 +88,6 @@ static int safemath_bigint(lua_State *L) {
 		luaL_argcheck(L, false, 1, "first argument must be integer or hex string");
 		return 0;
 	}
-	return 1;
 }
 
 //static int safemath_bignumber(lua_State *L) {
@@ -519,7 +518,7 @@ static int safemath_rem(lua_State *L) {
 		}
 		first_int_str = uvm::util::unhex(first_hex_str);
 		first_int = sm_bigint(first_int_str);
-		auto second_int_str = uvm::util::unhex(second_hex_str);
+		second_int_str = uvm::util::unhex(second_hex_str);
 		second_int = sm_bigint(second_int_str);
 		if (second_int == 0) {
 			luaL_error(L, "rem by 0 error");
@@ -794,7 +793,7 @@ static int safemath_safe_number_create(lua_State *L) {
 	std::string value_str;
 	if (lua_isinteger(L, 1)) {
 		lua_Integer n = lua_tointeger(L, 1);
-		std::string value_str;
+		//std::string value_str;
 		value_str = std::to_string(n);
 	}
 	else if (lua_isstring(L, 1)) {
