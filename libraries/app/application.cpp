@@ -435,7 +435,7 @@ namespace detail {
          // never replay if data dir is empty
          if( fc::exists( _data_dir ) && fc::directory_iterator( _data_dir ) != fc::directory_iterator() )
          {
-            if( _options->count("replay-blockchain") )
+            if( _options->count("replay-blockchain") || _options->count("replay-withoutContract") )
             {
                replay = true;
                replay_reason = "replay-blockchain argument specified";
@@ -491,6 +491,8 @@ namespace detail {
          {
             ilog( "Replaying blockchain due to: ${reason}", ("reason", replay_reason) );
 			fc::remove_all(_data_dir / "db_version");
+			if (_options->count("replay-withoutContract"))
+				fc::remove_all(_data_dir / "blockchain" / "contract_db");
 			_chain_db->reindex(_data_dir / "blockchain", initial_state());
 			const auto mode = std::ios::out | std::ios::binary | std::ios::trunc;
 			std::ofstream db_version((_data_dir / "db_version").generic_string().c_str(), mode);
@@ -498,7 +500,12 @@ namespace detail {
 			db_version.write(version_string.c_str(), version_string.size());
 			db_version.close();
          }
-
+		 if (_options->count("event-need"))
+		 {
+			 _chain_db->modify(_chain_db->get_global_properties(), [] (global_property_object& obj){
+				 obj.event_need = true;
+			 });
+		 }
          if( _options->count("force-validate") )
          {
             ilog( "All transaction signatures will be validated" );
@@ -1051,6 +1058,7 @@ void application::set_program_options(boost::program_options::options_descriptio
           "missing fields in a Genesis State will be added, and any unknown fields will be removed. If no file or an "
           "invalid file is found, it will be replaced with an example Genesis State.")
          ("replay-blockchain", "Rebuild object graph by replaying all blocks")
+	     ("replay-withoutContract", "Rebuild object graph by replaying all blocks and remove contract db")
          ("resync-blockchain", "Delete all blocks and re-sync with network from scratch")
 		 ("force-validate", "Force validation of all transactions")
 		 ("testnet", "Start for testnet")
@@ -1058,6 +1066,7 @@ void application::set_program_options(boost::program_options::options_descriptio
 	     ("rewind-on-close", "rewind-on-close")
          ("genesis-timestamp", bpo::value<uint32_t>(), "Replace timestamp from genesis.json with current time plus this many seconds (experts only!)")
 	     ("need-secure","no need to replay after being get interrupted exceptionally")
+	     ("event-need", "need to store contract events.")
          ;
    command_line_options.add(_cli_options);
    configuration_file_options.add(_cfg_options);

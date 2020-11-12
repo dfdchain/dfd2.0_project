@@ -65,7 +65,9 @@ optional<trx_object> database::fetch_trx(const transaction_id_type trx_id) const
 		leveldb::Status sta = db->Get(read_options, trx_id.str(), &out);
 		if (sta.ok())
 		{
-			return fc::json::from_string(out).as<trx_object>();
+			vector<char> vec(out.begin(),out.end());
+			trx_object obj = fc::raw::unpack<trx_object>(vec);
+			return obj;
 		}	
 	}
 	catch (const fc::exception&)
@@ -1092,7 +1094,7 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    std::for_each(range.first, range.second, [](const account_balance_object& b) { FC_ASSERT(b.balance == 0); });
 
    return ptrx;
-} FC_CAPTURE_AND_RETHROW( (trx) ) }
+} FC_CAPTURE_AND_RETHROW( (signed_transaction_without_code(trx).get_sign_transaction()) ) }
 
 operation without_code(const operation& op)
 {
@@ -1120,7 +1122,7 @@ operation_result database::apply_operation(transaction_evaluation_state& eval_st
   // set_applied_operation_result( op_id, result );
    eval_state.op_num++;
    return result;
-} FC_CAPTURE_AND_RETHROW( (op) ) }
+} FC_CAPTURE_AND_RETHROW( (without_code(op)) ) }
 
 unique_ptr<op_evaluator>& database::get_evaluator(const operation& op)
 {

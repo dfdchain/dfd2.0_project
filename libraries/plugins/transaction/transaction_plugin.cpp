@@ -74,6 +74,7 @@ void transaction_plugin_impl::erase_transaction_records(const vector<signed_tran
 	for (auto tx : trxs)
 	{
 		leveldb::WriteOptions write_options;
+		write_options.sync = true;
 		db.get_levelDB()->Delete(write_options, tx.id().str());
 	}
 }
@@ -87,7 +88,8 @@ void transaction_plugin_impl::update_transaction_record( const signed_block& b )
 	   obj.trx = trx;
 	   obj.trx_id = trx.id();
 	   obj.block_num = b.block_num();
-	   leveldb::Status sta = db.get_levelDB()->Put(write_options, obj.trx_id.str(), fc::json::to_string(obj));
+	   const auto& vec = fc::raw::pack(obj);
+	   leveldb::Status sta = db.get_levelDB()->Put(write_options, obj.trx_id.str(), leveldb::Slice(vec.data(),vec.size()));
 	   if (!sta.ok())
 	   {
 		   elog("Put error: ${error}", ("error", (trx.id().str() + ":" + sta.ToString()).c_str()));
@@ -110,6 +112,17 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 	{
 		addresses.insert(address(sig));
 	}
+	if (
+		[&trx]()-> bool {
+		for (auto op : trx.operations)
+		{
+			if (is_contract_operation(op))
+				return true;
+		}
+		return false;
+	}()
+		)
+	{
 	auto res=db.get_contract_invoke_result(trx.id());
 	for (const auto& it : res)
 	{
@@ -117,6 +130,7 @@ void transaction_plugin_impl::add_transaction_history(const signed_transaction& 
 		{
 			addresses.insert(deposit_it.first.first);
 		}
+	}
 	}
 	for (auto op : trx.operations)
 	{
