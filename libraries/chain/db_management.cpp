@@ -36,6 +36,9 @@
 #include "boost/filesystem/operations.hpp"
 #include <leveldb/db.h>
 #include <leveldb/cache.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <fc/io/fstream.hpp>
 namespace graphene { namespace chain {
 
 database::database()
@@ -84,6 +87,20 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
    _undo_db.enable();
    _undo_db.set_max_size(GRAPHENE_UNDO_BUFF_MAX_SIZE);
    reinitialize_leveldb();
+  // l_db.Close();
+   if (real_l_db != nullptr)
+	   delete real_l_db;
+   leveldb::Options options;
+   options.create_if_missing = true;
+   open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &real_l_db);
+   //open_status = l_db.Open(options, (get_data_dir() / "contract_db").string());
+   if (!open_status.ok())
+   {
+	   //l_db = nullptr;
+	   real_l_db = nullptr;
+	   elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+	   FC_ASSERT(false, "database open error");
+   }
    uint32_t undo_enable_num = last_block_num - 1440;
    for( uint32_t i = 1; i <= last_block_num; ++i )
    {
@@ -117,7 +134,8 @@ void database::reindex(fc::path data_dir, const genesis_state_type& initial_allo
                           skip_transaction_dupe_check |
                           skip_tapos_check |
                           skip_witness_schedule_check |
-                          skip_authority_check);
+                          skip_authority_check |
+	                      skip_contract_db_check);
 	  session.commit();
    }
    auto end = fc::time_point::now();
@@ -198,6 +216,23 @@ void database::open(
 		  fc::path fork_data_dir = get_data_dir() / "fork_db";
 		  _fork_db.from_file(fork_data_dir.string());
 		  initialize_leveldb();
+		  leveldb::Options options;
+		  options.create_if_missing = true;
+		 /* open_status = l_db.Open(options, (get_data_dir() / "contract_db").string());
+		  if (!open_status.ok())
+		  {
+			  //l_db = nullptr;
+			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+			  FC_ASSERT(false, "database open error");
+		  }*/
+		  
+		  open_status = leveldb::DB::Open(options, (get_data_dir() / "contract_db").string(), &real_l_db);
+		  if (!open_status.ok())
+		  {
+			  real_l_db = nullptr;
+			  elog("database open failed : ${msg}", ("msg", open_status.ToString().c_str()));
+			  FC_ASSERT(false, "database open error");
+		}
    }
    FC_CAPTURE_LOG_AND_RETHROW( (data_dir) )
 } 
@@ -271,6 +306,16 @@ void database::close()
    //_undo_db.reset();
    _fork_db.reset();
    destruct_leveldb();
+   //l_db.Close();
+   if (real_l_db != nullptr) {
+	   l_db.Flush(leveldb::WriteOptions(), real_l_db);
+	   delete real_l_db;
+   }
+   real_l_db = nullptr;
+   /*
+   if (l_db != nullptr)
+	   delete l_db;
+   l_db = nullptr;*/
 }
 
 } }

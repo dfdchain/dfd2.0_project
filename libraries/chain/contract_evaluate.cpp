@@ -112,7 +112,7 @@ namespace graphene {
 			}
 			invoke_contract_result.invoker = o.owner_addr;
 			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
-			address fid = contract_register_operation::get_first_contract_id();
+			//address fid = contract_register_operation::get_first_contract_id();
 
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
 			FC_ASSERT(!d.has_contract(o.contract_id), "contract address must be unique");
@@ -137,8 +137,8 @@ namespace graphene {
 
 
 			try {
-			if (!d.has_contract(fid))
-					origin_op.contract_id = fid;
+// 			if (!d.has_contract(fid))
+// 					origin_op.contract_id = fid;
 			new_contract.contract_address = origin_op.contract_id;
 			new_contract.code = o.contract_code;
 			new_contract.owner_address = o.owner_addr;
@@ -828,8 +828,8 @@ namespace graphene {
 
 		bool contract_register_evaluate::has_contract(const address& addr, const string& method /*= ""*/)
 		{
-			if (contract_register_operation::get_first_contract_id() == addr)
-				return true;
+// 			if (contract_register_operation::get_first_contract_id() == addr)
+// 				return true;
 			if (origin_op.contract_id == addr)
 				return true;
 			return false;

@@ -300,8 +300,7 @@ processed_transaction database::push_transaction( const signed_transaction& trx,
       result = _push_transaction( trx );
    } ); 
    return result;
-	}
-	FC_CAPTURE_AND_RETHROW( (trx) ) }
+} FC_CAPTURE_AND_RETHROW( (signed_transaction_without_code(trx)) ) }
 
 processed_transaction database::_push_transaction( const signed_transaction& trx )
 {
@@ -701,6 +700,14 @@ void database::pop_block()
    vector<signed_transaction> txs(head_block->transactions.begin(),head_block->transactions.end());
    removed_trxs(txs);
    _popped_tx.insert( _popped_tx.begin(), head_block->transactions.begin(), head_block->transactions.end() );
+	 for (const auto trx : _popped_tx)
+   {
+	   contract_packed(trx, head_block->block_num());
+   }
+   if (head_block->block_num() % 100000 == 0)
+   {
+	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
+   }
 } FC_CAPTURE_AND_RETHROW() }
 
 void database::clear_pending()
@@ -755,7 +762,125 @@ void database::apply_block( const signed_block& next_block, uint32_t skip )
    {
       _apply_block( next_block );
    } );
+   if (block_num % 100000 == 0)
+   {
+	   l_db.Flush(leveldb::WriteOptions(), get_contract_db());
+   }
    return;
+}
+static void load_apis_in_contract_object_if_native(contract_object& cont) {
+	// if is native contract, get contract apis and fill it
+	if (cont.type_of_contract == contract_type::native_contract) {
+		auto native_contract = native_contract_finder::create_native_contract_by_key(nullptr, cont.native_contract_key, cont.contract_address);
+		if (native_contract) {
+			cont.code.abi = native_contract->apis();
+			//cont.code.abi.clear();
+			//for(const auto& api : native_contract->apis()) {
+			//      cont.code.abi.push(api);
+			//}
+			cont.code.offline_abi = native_contract->offline_apis();
+			//cont.code.offline_abi.clear();
+			//for(const auto& api : native_contract->offline_apis()) {
+			//        cont.code.offline_abi.push(api);
+			//}
+			cont.code.events = native_contract->events();
+			//cont.code.events.clear();
+			//for(const auto& event : native_contract->events()) {
+			//        cont.code.events.push(event);
+			//}
+		}
+	}
+}
+string database::invoke_contract_offline_indb(const string& caller_pubkey_str, const string& contract_address_or_name, const string& contract_api, const string& contract_arg) {
+	try {
+
+
+		contract_invoke_operation contract_invoke_op;
+
+		//juge if the name has been registered in the chain
+
+		public_key_type caller_pubkey(caller_pubkey_str);
+		contract_object cont;
+		std::string contract_address = contract_address_or_name;
+		//try {
+		 //   auto temp = graphene::chain::address(contract_address_or_name);
+		 //   FC_ASSERT(temp.version == addressVersion::CONTRACT);
+		//}
+		//catch (fc::exception& e)
+		//{
+		 //   cont = _remote_db->get_contract_object_by_name(contract_address_or_name);
+		 //   contract_address = string(cont.contract_address);
+		//}
+		bool is_valid_address = true;
+		try {
+			auto temp = graphene::chain::address(contract_address_or_name);
+			FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		}
+		catch (fc::exception& e)
+		{
+			is_valid_address = false;
+		}
+		if (!is_valid_address)
+		{
+			cont = get_contract(address(contract_address));
+			load_apis_in_contract_object_if_native(cont);
+			contract_address = string(cont.contract_address);
+		}
+		else
+		{
+			cont = get_contract(address(contract_address));
+			load_apis_in_contract_object_if_native(cont);
+			contract_address = string(cont.contract_address);
+		}
+		if (cont.type_of_contract == contract_type::native_contract) {
+			// ignore check of api
+		}
+		else {
+			auto& abi = cont.code.offline_abi;
+			if (abi.find(contract_api) == abi.end())
+				FC_CAPTURE_AND_THROW(blockchain::contract_engine::contract_api_not_found);
+		}
+
+		contract_invoke_op.gas_price = 0;
+		contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		contract_invoke_op.caller_addr = caller_pubkey;
+		contract_invoke_op.caller_pubkey = caller_pubkey;
+		contract_invoke_op.contract_id = address(contract_address);
+		contract_invoke_op.contract_api = contract_api;
+		contract_invoke_op.contract_arg = contract_arg;
+		contract_invoke_op.fee.amount = 0;
+		contract_invoke_op.fee.asset_id = asset_id_type(0);
+		//contract_invoke_op.invoke_cost = GRAPHENE_CONTRACT_TESTING_GAS;
+		//contract_invoke_op.guarantee_id = get_guarantee_id();
+		signed_transaction tx;
+		tx.operations.push_back(contract_invoke_op);
+		auto current_fees = get_global_properties().parameters.current_fees;
+		for (auto& op : tx.operations)
+			current_fees->set_fee(op);
+
+		auto dyn_props = get_dynamic_global_properties();
+		tx.set_reference_block(dyn_props.head_block_id);
+		tx.set_expiration(dyn_props.time + fc::seconds(30));
+		tx.validate();
+		signed_transaction signed_tx(tx);
+		auto trx_res = validate_transaction(signed_tx, true);
+		share_type gas_count = 0;
+		string res = "some error happened, not api result get";
+		for (auto op_res : trx_res.operation_results)
+		{
+			try {
+				res = op_res.get<contract_operation_result_info>().api_result;
+			}
+			catch (...)
+			{
+				break;
+			}
+		}
+		return res;
+	}
+	catch (...) {
+		return "";
+	}
 }
 
 void database::_apply_block( const signed_block& next_block )
@@ -773,6 +898,9 @@ void database::_apply_block( const signed_block& next_block )
 
    _current_block_num    = next_block_num;
    _current_trx_in_block = 0;
+   _current_secret_key = next_block.previous_secret;
+   _current_contract_call_num = 0;
+  
    map<string, int> temp_signature;
    for( const auto& trx : next_block.transactions )
    {
@@ -782,6 +910,20 @@ void database::_apply_block( const signed_block& next_block )
        * for transactions when validating broadcast transactions or
        * when building a block.
        */
+	   if (!(skip & skip_contract_db_check))
+	   {
+		   bool relate_contract = false;
+		   for (const auto & op : trx.operations)
+		   {
+			   if (is_contract_operation(op))
+			   {
+				   relate_contract = true;
+				   break;
+			   }
+		   }
+		   if (relate_contract)
+			   contract_packed(trx, 0);
+	   }
 	  const auto& apply_trx_res = apply_transaction(trx, skip);
 	  FC_ASSERT(apply_trx_res.operation_results == trx.operation_results, "operation apply result not same with result in block");
       ++_current_trx_in_block;
@@ -952,6 +1094,16 @@ processed_transaction database::_apply_transaction(const signed_transaction& trx
    return ptrx;
 } FC_CAPTURE_AND_RETHROW( (trx) ) }
 
+operation without_code(const operation& op)
+{
+	if (op.which()==operation::tag<contract_register_operation>::value)
+	{
+		auto o=op.get<contract_register_operation>();
+		o.contract_code = uvm::blockchain::Code();
+		return o;
+	}
+	return op;
+}
 operation_result database::apply_operation(transaction_evaluation_state& eval_state, const operation& op)
 { try {
    int i_which = op.which();
