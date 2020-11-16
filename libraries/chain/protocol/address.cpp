@@ -47,7 +47,7 @@ namespace graphene {
 			FC_ASSERT(is_valid(base58str, prefix), "${str}", ("str", base58str + " -- " + prefix));
 
 			std::vector<char> v = fc::from_base58(base58str);
-            version = (unsigned char)v.data();
+			version = (unsigned char)(v.data()[0]);
 			memcpy(addr.data, v.data()+1, std::min<size_t>(v.size() - 4, sizeof(addr)));
 		}
 
