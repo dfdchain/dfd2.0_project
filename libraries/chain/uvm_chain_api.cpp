@@ -971,7 +971,7 @@ namespace graphene {
 			std::string addr(address_str);
 			try {
 				auto temp = graphene::chain::address(addr);
-				if (temp.version() != addressVersion::CONTRACT)
+				if (temp.version != addressVersion::CONTRACT)
 					return false;
 			}
 			catch (fc::exception&)

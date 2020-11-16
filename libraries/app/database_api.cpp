@@ -384,7 +384,7 @@ ContractEntryPrintable database_api::get_simple_contract_info(const string & con
 	std::string contract_address;
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
-		FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)
@@ -2819,7 +2819,7 @@ execution_result database_api::invoke_contract_testing(const string & pubkey, co
 		bool is_valid_address = true;
 		try {
 			auto temp = graphene::chain::address(contract_address_or_name);
-			FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		}
 		catch (fc::exception& e)
 		{
@@ -2902,7 +2902,7 @@ string database_api::invoke_contract_offline(const string & caller_pubkey_str, c
 		bool is_valid_address = true;
 		try {
 			auto temp = graphene::chain::address(contract_address_or_name);
-			FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		}
 		catch (fc::exception& e)
 		{

@@ -513,7 +513,7 @@ void database::process_bonus()
 			{
 				continue;
 			}
-			else if (iter->owner.version() == addressVersion::CONTRACT)
+			else if (iter->owner.version == addressVersion::CONTRACT)
 			{
 			    iter++;
 				continue;

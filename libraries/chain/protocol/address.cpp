@@ -39,7 +39,7 @@ namespace graphene {
 				return;
 			std::string prefix(prefix_str);
 			if (testnet_mode)
-				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
+				prefix = GRAPHENE_ADDRESS_TESTNET_PREFIX;
 			if (base58str.size() <= prefix.size())
 			{
 				return;
@@ -47,7 +47,8 @@ namespace graphene {
 			FC_ASSERT(is_valid(base58str, prefix), "${str}", ("str", base58str + " -- " + prefix));
 
 			std::vector<char> v = fc::from_base58(base58str);
-			memcpy(addr.data, v.data(), std::min<size_t>(v.size() - 4, sizeof(addr)));
+            version = (unsigned char)v.data();
+			memcpy(addr.data, v.data()+1, std::min<size_t>(v.size() - 4, sizeof(addr)));
 		}
 
 		bool address::is_valid(const std::string& base58str, const std::string& prefix)
@@ -55,7 +56,7 @@ namespace graphene {
 			if (prefix.empty())
 			{
 				if (testnet_mode)
-					return is_valid(base58str, std::string(GRAPHENE_ADDRESS_PREFIX) + GRAPHENE_ADDRESS_TESTNET_PREFIX);
+					return is_valid(base58str, GRAPHENE_ADDRESS_TESTNET_PREFIX);
 				else
 					return is_valid(base58str, GRAPHENE_ADDRESS_PREFIX);
 			}
@@ -91,19 +92,20 @@ namespace graphene {
 			auto dat = pub.serialize();
 			auto sha2 = ::fc::sha256::hash(dat.data, sizeof(dat));
 			auto rep = fc::ripemd160::hash((char*)&sha2, sizeof(sha2));
-			addr.data[0] = version;
-			memcpy(addr.data + 1, (char*)&rep, sizeof(rep));
+            this->version = version;
+			memcpy(addr.data, (char*)&rep, sizeof(rep));
 		}
 
 		std::string address::address_to_string() const
 		{
 			string prefix = GRAPHENE_ADDRESS_PREFIX;
 			if (testnet_mode)
-				prefix += GRAPHENE_ADDRESS_TESTNET_PREFIX;
+				prefix = GRAPHENE_ADDRESS_TESTNET_PREFIX;
 			if (*this == address())
 				return ADDRESS_NOT_INITED;
 			fc::array<char, 25> bin_addr;
-			memcpy((char*)&bin_addr, (char*)&addr, sizeof(addr));
+            memcpy((char*)& bin_addr, (char*)& version, 1);
+			memcpy((char*)&bin_addr + 1, (char*)&addr, sizeof(addr));
 
 			auto check = fc::sha256::hash(bin_addr.data, bin_addr.size() - 4);
 			check = fc::sha256::hash(check); // double
@@ -116,16 +118,16 @@ namespace graphene {
 		}
 		address::address(const fc::ripemd160& rip, unsigned char version)
 		{
-			addr.data[0] = version;
-			memcpy(addr.data + 1, (char*)&rip, sizeof(rip));
+			this->version = version;
+			memcpy(addr.data, (char*)&rip, sizeof(rip));
 		}
 		address::address(const fc::ecc::public_key_data& pub, unsigned char version)
 		{
 			auto dat = fc::ecc::public_key(pub).serialize();
 			auto sha2 = ::fc::sha256::hash(dat.data, sizeof(dat));
 			auto rep = fc::ripemd160::hash((char*)&sha2, sizeof(sha2));
-			addr.data[0] = version;
-			memcpy(addr.data + 1, (char*)&rep, sizeof(rep));
+			this->version = version;
+			memcpy(addr.data, (char*)&rep, sizeof(rep));
 		}
 		address::address(const graphene::chain::public_key_type& pub, unsigned char version)
 		{
@@ -134,8 +136,8 @@ namespace graphene {
 			auto dat = pub.operator fc::ecc::public_key().serialize();
 			auto sha2 = ::fc::sha256::hash(dat.data, sizeof(dat));
 			auto rep = fc::ripemd160::hash((char*)&sha2, sizeof(sha2));
-			addr.data[0] = version;
-			memcpy(addr.data + 1, (char*)&rep, sizeof(rep));
+			this->version = version;
+			memcpy(addr.data, (char*)&rep, sizeof(rep));
 		}
 
 		address::operator std::string()const

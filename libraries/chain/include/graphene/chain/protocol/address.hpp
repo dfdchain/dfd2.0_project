@@ -67,7 +67,7 @@ namespace graphene {
 			address(const public_key_type& pubkey, unsigned char version = addressVersion::NORMAL);
 			address(const fc::ripemd160& rip, unsigned char version = addressVersion::NORMAL);
 			static bool is_valid(const std::string& base58str, const std::string& prefix = "");
-			uint8_t version() const { return addr.at(0); }
+			//uint8_t version() const { return this->version; }
 			explicit operator std::string()const; ///< converts to base58 + checksum
 
 			std::string address_to_string() const;
@@ -77,8 +77,8 @@ namespace graphene {
 				const size_t* tmp2 = reinterpret_cast<const size_t*>(tmp);
 				return *tmp2;
 			}
-			//unsigned char version = addressVersion::NORMAL;
-			fc::array<char, 21> addr;
+			unsigned char version = addressVersion::NORMAL;
+			fc::array<char, 20> addr;
 			static bool testnet_mode;
 		};
 		inline bool operator == (const address& a, const address& b) { return (a.addr == b.addr); }
@@ -101,11 +101,11 @@ namespace std
 	public:
 		size_t operator()(const graphene::chain::address &a) const
 		{
-			return (uint64_t(a.addr.at(1)) << 32) | uint64_t(a.addr.at(1));
+			return (uint64_t(a.addr.at(0)) << 32) | uint64_t(a.addr.at(0));
 		}
 	};
 }
 
 #include <fc/reflect/reflect.hpp>
-FC_REFLECT(graphene::chain::address, (addr))
+FC_REFLECT(graphene::chain::address,(version)(addr))
 

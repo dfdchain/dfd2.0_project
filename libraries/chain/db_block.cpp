@@ -816,7 +816,7 @@ string database::invoke_contract_offline_indb(const string& caller_pubkey_str, c
 		bool is_valid_address = true;
 		try {
 			auto temp = graphene::chain::address(contract_address_or_name);
-			FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		}
 		catch (fc::exception& e)
 		{

@@ -111,7 +111,7 @@ namespace graphene {
 				throw_over_limit = true;
 			}
 			invoke_contract_result.invoker = o.owner_addr;
-			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			//address fid = contract_register_operation::get_first_contract_id();
 
             //FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
@@ -255,7 +255,7 @@ namespace graphene {
 			{
 				throw_over_limit = true;
 			}
-			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
 			// check contract id unique
 
             		//FC_ASSERT(check_fee_for_gas(o.owner_addr, o.init_cost, o.gas_price));
@@ -366,7 +366,7 @@ namespace graphene {
 			}
             //FC_ASSERT(check_fee_for_gas(o.caller_addr,o.invoke_cost,o.gas_price));
 			origin_op = o;
-			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(operation_type::contract_api_check(o));
@@ -512,7 +512,7 @@ namespace graphene {
 
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 
-			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             invoke_contract_result.invoker = o.caller_addr;
 			FC_ASSERT(d.has_contract(o.contract_id));
 			FC_ASSERT(!d.has_contract_of_name(o.contract_name));
@@ -907,7 +907,7 @@ namespace graphene {
 			address contract_addr;
 			try {
 				auto temp = graphene::chain::address(contract_id);
-				if (temp.version() != addressVersion::CONTRACT)
+				if (temp.version != addressVersion::CONTRACT)
 					return nullptr;
 				contract_addr = temp;
 			}
@@ -1042,7 +1042,7 @@ namespace graphene {
 			{
 				throw_over_limit = true;
 			}
-			FC_ASSERT(o.contract_id.version() == addressVersion::CONTRACT);
+			FC_ASSERT(o.contract_id.version == addressVersion::CONTRACT);
             //FC_ASSERT(check_fee_for_gas(o.caller_addr, o.invoke_cost, o.gas_price));
 
             invoke_contract_result.invoker = o.caller_addr;

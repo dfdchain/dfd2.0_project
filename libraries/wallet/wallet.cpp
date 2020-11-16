@@ -1684,7 +1684,7 @@ public:
 		   bool is_valid_address = true;
 		   try {
 			   auto temp = graphene::chain::address(contract_address_or_name);
-			   FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   }
 		   catch (fc::exception& e)
 		   {
@@ -1757,7 +1757,7 @@ public:
 		   bool is_valid_address = true;
 		   try {
 			   auto temp = graphene::chain::address(contract_address_or_name);
-			   FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   }
 		   catch (fc::exception& e)
 		   {
@@ -1828,7 +1828,7 @@ public:
 		   std::string contract_address;
 		   //try {
 			//   auto temp = graphene::chain::address(contract_address_or_name);
-			//   FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			//   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   //}
 		   //catch (fc::exception& e)
 		   //{
@@ -1838,7 +1838,7 @@ public:
 		   bool is_valid_address = true;
 		   try {
 			   auto temp = graphene::chain::address(contract_address_or_name);
-			   FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+			   FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		   }
 		   catch (fc::exception& e)
 		   {
@@ -4213,7 +4213,7 @@ public:
 		   transfer_operation xfer_op;
 		   xfer_op.from_addr = iter.find(from)->addr;
 		   xfer_op.to_addr = address(to);
-		   FC_ASSERT(xfer_op.to_addr.version() != addressVersion::CONTRACT,"address should not be a contract address.");
+		   FC_ASSERT(xfer_op.to_addr.version != addressVersion::CONTRACT,"address should not be a contract address.");
 		   xfer_op.amount = asset_obj->amount_from_string(amount);
 		   xfer_op.guarantee_id=get_guarantee_id();
 		   if (memo.size())
@@ -6462,7 +6462,7 @@ full_transaction wallet_api::invoke_contract(const string& caller_account_name, 
 	try {
 		contract_address = graphene::chain::address(contract_address_or_name).address_to_string();
 		auto temp = address(contract_address);
-		FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
 	catch (fc::exception& e)
 	{
@@ -6484,7 +6484,7 @@ std::pair<asset, share_type> wallet_api::invoke_contract_testing(const string & 
 	try {
 		contract_address = graphene::chain::address(contract_address_or_name).address_to_string();
 		auto temp = address(contract_address);
-		FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
 	catch (fc::exception& e)
 	{
@@ -6507,7 +6507,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	try {
 		contract_address = graphene::chain::address(contract_address_or_name).address_to_string();
 		auto temp = address(contract_address);
-		FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 	}
 	catch (fc::exception& e)
 	{
@@ -6517,7 +6517,7 @@ string wallet_api::invoke_contract_offline(const string& caller_account_name, co
 	try
 	{
 		auto temp = address(public_key_type(caller_account_name));
-		FC_ASSERT(temp.version() == addressVersion::MULTISIG|| temp.version() == addressVersion::NORMAL);
+		FC_ASSERT(temp.version == addressVersion::MULTISIG|| temp.version == addressVersion::NORMAL);
 	}
 	catch (fc::exception& e)
 	{
@@ -6549,7 +6549,7 @@ ContractEntryPrintable wallet_api::get_contract_info(const string & contract_add
 	std::string contract_address;
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
-		FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
 		contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)
@@ -6565,7 +6565,7 @@ ContractEntryPrintable wallet_api::get_simple_contract_info(const string & contr
 	std::string contract_address;
 	try {
 		auto temp = graphene::chain::address(contract_address_or_name);
-		FC_ASSERT(temp.version() == addressVersion::CONTRACT);
+		FC_ASSERT(temp.version == addressVersion::CONTRACT);
         contract_address = temp.operator fc::string();
 	}
 	catch (fc::exception& e)

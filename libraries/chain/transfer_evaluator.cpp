@@ -43,7 +43,7 @@ void_result transfer_evaluator::do_evaluate( const transfer_operation& op )
 		   FC_ASSERT(op.amount.asset_id == asset_id_type(0),"invalid asset.");
 	   }
 	 
-	   FC_ASSERT(op.to_addr.version() != addressVersion::CONTRACT,"address should not be a contract address");
+	   FC_ASSERT(op.to_addr.version != addressVersion::CONTRACT,"address should not be a contract address");
 	   bool insufficient_balance =  d.get_balance(op.from_addr, asset_type.id).amount >= op.amount.amount;
 
 	   FC_ASSERT(insufficient_balance,
