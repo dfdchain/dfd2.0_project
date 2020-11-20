@@ -465,6 +465,7 @@ FC_API(graphene::app::network_broadcast_api,
        (broadcast_transaction)
        (broadcast_transaction_synchronous)
        (broadcast_block)
+		(broadcast_transaction_asynchronous)
      )
 FC_API(graphene::app::network_node_api,
        (get_info)
