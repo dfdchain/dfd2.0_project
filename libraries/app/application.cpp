@@ -78,7 +78,9 @@ namespace bpo = boost::program_options;
 namespace detail {
 
    genesis_state_type create_example_genesis() {
-      auto hyper_exchange_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("DFD")));
+      //auto hyper_exchange_key = fc::ecc::private_key::regenerate(fc::sha256::hash(string("DFD")));
+	   auto hyper_exchange_key = fc::ecc::private_key::generate();
+	   std::cout << "DFD" << " " << utilities::key_to_wif(hyper_exchange_key) << " " << std::string(public_key_type(hyper_exchange_key.get_public_key())) << std::endl;
       dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(hyper_exchange_key)));
       genesis_state_type initial_state;
       initial_state.initial_parameters.current_fees = fee_schedule::get_default();//->set_all_fees(GRAPHENE_BLOCKCHAIN_PRECISION);
@@ -89,25 +91,29 @@ namespace detail {
       for( uint64_t i = 0; i < initial_state.initial_active_miners; ++i )
       {
          auto name = "senator"+fc::to_string(i);
-		 auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		 //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		 auto name_key = fc::ecc::private_key::generate();
+
 		 dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
          initial_state.initial_accounts.emplace_back(name,
 			                                         name_key.get_public_key(),
 			                                         name_key.get_public_key(),
                                                      true);
-         
+		 std::cout << name << " " << utilities::key_to_wif(name_key) << " " << std::string(public_key_type(name_key.get_public_key())) << std::endl;
          initial_state.initial_miner_candidates.push_back({name, name_key.get_public_key()});
       }
 
 	  for (uint64_t i = 0; i < GRAPHENE_DEFAULT_MAX_GUARDS; i++)
 	  {
 		  auto name = "director" + fc::to_string(i);
-		  auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		  //auto name_key = fc::ecc::private_key::regenerate(fc::sha256::hash(name));
+		  auto name_key = fc::ecc::private_key::generate();
 		  dlog("Allocating all stake to ${key}", ("key", utilities::key_to_wif(name_key)));
 		  initial_state.initial_accounts.emplace_back(name,
 			                                          name_key.get_public_key(),
 			                                          name_key.get_public_key(),
 			                                          true);
+		  std::cout << name << " " << utilities::key_to_wif(name_key) << " " << std::string(public_key_type(name_key.get_public_key())) << std::endl;
 		  genesis_state_type::initial_committee_member_type guard;
 		  if (i < 5)
 		  {
@@ -188,8 +194,14 @@ namespace detail {
          }
          else
          {
-            // https://DFDstalk.org/index.php/topic,23715.0.html
             vector<string> seeds = {
+				"18.166.158.200:51000",
+				"18.166.236.229:51000",
+				"18.166.3.100:51000",
+				"18.166.162.254:51000",
+				"18.162.47.47:51000",
+				"18.162.154.204:51000",
+				"18.162.38.178:51000"
             };
             for( const string& endpoint_string : seeds )
             {

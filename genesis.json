@@ -1,6 +1,6 @@
 {
-  "initial_timestamp": "2019-07-11T23:59:50",
-  "max_core_supply": "1000000000000000",
+  "initial_timestamp": "2020-11-20T01:59:20",
+  "max_core_supply": "10000000000000000",
   "initial_parameters": {
     "current_fees": {
       "parameters": [[
@@ -18,7 +18,7 @@
           }
         ],[
           3,{
-            "fee": 10
+            "fee": 100
           }
         ],[
           4,{
@@ -26,7 +26,7 @@
           }
         ],[
           5,{
-            "basic_fee": 10,
+            "basic_fee": 500000,
             "premium_fee": 20000,
             "price_per_kbyte": 10
           }
@@ -99,7 +99,7 @@
           }
         ],[
           21,{
-            "fee": 100000000
+            "fee": 1000000000
           }
         ],[
           22,{
@@ -232,17 +232,17 @@
           }
         ],[
           54,{
-            "fee": 10,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           55,{
-            "fee": 10,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
           56,{
-            "fee": 10,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
@@ -257,7 +257,7 @@
           }
         ],[
           59,{
-            "fee": 10,
+            "fee": 100,
             "price_per_kbyte": 100
           }
         ],[
@@ -306,10 +306,30 @@
           }
         ],[
           71,{
-            "fee": 100000000
+            "fee": 100
           }
         ],[
           72,{
+            "fee": 100
+          }
+        ],[
+          73,{
+            "fee": 100
+          }
+        ],[
+          74,{
+            "fee": 100
+          }
+        ],[
+          75,{}
+        ],[
+          76,{}
+        ],[
+          77,{
+            "fee": 100
+          }
+        ],[
+          78,{
             "fee": 100
           }
         ]
@@ -321,7 +341,7 @@
     "maintenance_skip_slots": 3,
     "committee_proposal_review_period": 1209600,
     "maximum_transaction_size": 2048,
-    "maximum_block_size": 2048000000,
+    "maximum_block_size": 4096000000,
     "maximum_time_until_expiration": 86400,
     "maximum_proposal_lifetime": 2419200,
     "maximum_asset_whitelist_authorities": 10,
@@ -348,332 +368,297 @@
     "min_pay_back_balance_other_asset": [],
     "extensions": []
   },
-  "initial_accounts": [
-    {
+  "initial_accounts": [{
       "name": "senator0",
-      "owner_key": "D5UMdRR6GvT1SjJnLbWYRaXahTNRmYJwo5y8TGZphuYkWYrBrjg",
-      "active_key": "D5UMdRR6GvT1SjJnLbWYRaXahTNRmYJwo5y8TGZphuYkWYrBrjg",
+      "owner_key": "D5nz4TjxBsBuhJDzqPixq43ypzPbc364ETAwWSRW36BversX8gx",
+      "active_key": "D5nz4TjxBsBuhJDzqPixq43ypzPbc364ETAwWSRW36BversX8gx",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator1",
-      "owner_key": "D6nafz3HUWVTuhXZDYSjFtbJXmLH4CWCTqUAkNY2iP8Y7YVvrcw",
-      "active_key": "D6nafz3HUWVTuhXZDYSjFtbJXmLH4CWCTqUAkNY2iP8Y7YVvrcw",
+      "owner_key": "D8bt9geCSd48PFJZ6GqiNFnaQnhPbP5uiAmY9fjKVHkU6YE38Pi",
+      "active_key": "D8bt9geCSd48PFJZ6GqiNFnaQnhPbP5uiAmY9fjKVHkU6YE38Pi",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator2",
-      "owner_key": "D8hPqqqyjHKVqgJiJGneXi6D8QgATzdQG4QQv68frU1bMqWmNPQ",
-      "active_key": "D8hPqqqyjHKVqgJiJGneXi6D8QgATzdQG4QQv68frU1bMqWmNPQ",
+      "owner_key": "D74nRzqoaGpJ1JjyihB63RktQXSuD76y3ZXXMy6puELggat8qxk",
+      "active_key": "D74nRzqoaGpJ1JjyihB63RktQXSuD76y3ZXXMy6puELggat8qxk",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator3",
-      "owner_key": "D5xRt7CfpwjJRSwqss1gVT988s79XtCZV9YQa9dgDSV1f54d4ui",
-      "active_key": "D5xRt7CfpwjJRSwqss1gVT988s79XtCZV9YQa9dgDSV1f54d4ui",
+      "owner_key": "D5zttJt3aSBct5AtSShPQCRCkip4TKAtHGmxoayqoBiRoysDa3k",
+      "active_key": "D5zttJt3aSBct5AtSShPQCRCkip4TKAtHGmxoayqoBiRoysDa3k",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator4",
-      "owner_key": "D5FZLZfMip13rHpYsjNKmuzTfbVCihnA7kivhN36As5WWMK3MC2",
-      "active_key": "D5FZLZfMip13rHpYsjNKmuzTfbVCihnA7kivhN36As5WWMK3MC2",
+      "owner_key": "D6AhnWywmJD4QQRpEqT1ZfdMhQyJG8rHDYy6w35C27QtzwpGrkJ",
+      "active_key": "D6AhnWywmJD4QQRpEqT1ZfdMhQyJG8rHDYy6w35C27QtzwpGrkJ",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator5",
-      "owner_key": "D5w8hLyGrchHKnXckSKRXhojbYEgWvKeJjjsEz9U8TBXTzjToEX",
-      "active_key": "D5w8hLyGrchHKnXckSKRXhojbYEgWvKeJjjsEz9U8TBXTzjToEX",
+      "owner_key": "D7SNjCseSVQ6mmGnKoJkVfKVqKSF2ksAdUTcGRL5gSHv2nBQRgC",
+      "active_key": "D7SNjCseSVQ6mmGnKoJkVfKVqKSF2ksAdUTcGRL5gSHv2nBQRgC",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator6",
-      "owner_key": "D5Z1b8rZYxwRNrshrX2qyDLBdfATKzrM3rn5yxFVHNVmtLaTWFm",
-      "active_key": "D5Z1b8rZYxwRNrshrX2qyDLBdfATKzrM3rn5yxFVHNVmtLaTWFm",
+      "owner_key": "D8ZGyR6WnH6B9fcnPWsFgaVbXMGuFL2oJxQwDY3GT8GwFAnBtYc",
+      "active_key": "D8ZGyR6WnH6B9fcnPWsFgaVbXMGuFL2oJxQwDY3GT8GwFAnBtYc",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator7",
-      "owner_key": "D8ek9LASqeajB5JdNnVhYAcRJ127tfokBsDVQyFzkULFQyeAyGP",
-      "active_key": "D8ek9LASqeajB5JdNnVhYAcRJ127tfokBsDVQyFzkULFQyeAyGP",
+      "owner_key": "D6wC3GdLyxwVqyo481j35Rp5v9UxqLQgJzMR3sCkKTdQPDd6ALJ",
+      "active_key": "D6wC3GdLyxwVqyo481j35Rp5v9UxqLQgJzMR3sCkKTdQPDd6ALJ",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator8",
-      "owner_key": "D5rLQ3T5ME7gLwiqi1oRSpT9JVEthZ3zzmsPzxcnGnxk6DiXqgE",
-      "active_key": "D5rLQ3T5ME7gLwiqi1oRSpT9JVEthZ3zzmsPzxcnGnxk6DiXqgE",
+      "owner_key": "D6jNuJyaUvCnwfhvcEWXwgRvBpLiPfyEutY2gi61cryv7VCFUrS",
+      "active_key": "D6jNuJyaUvCnwfhvcEWXwgRvBpLiPfyEutY2gi61cryv7VCFUrS",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator9",
-      "owner_key": "D5SJgbdeXGhwevePTUdD8ypEqavWh72fyhZn2fVQuU5fG5icDRU",
-      "active_key": "D5SJgbdeXGhwevePTUdD8ypEqavWh72fyhZn2fVQuU5fG5icDRU",
+      "owner_key": "D6f4m2owkzpYCygu7JSBQTv2CJxhN65rVAL1EijWd4k66oWQgKU",
+      "active_key": "D6f4m2owkzpYCygu7JSBQTv2CJxhN65rVAL1EijWd4k66oWQgKU",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator10",
-      "owner_key": "D81Qw37P9wGrQ7coYpqMXHEH97KYyhxpGC2oc5wbnFKp6eR8a6P",
-      "active_key": "D81Qw37P9wGrQ7coYpqMXHEH97KYyhxpGC2oc5wbnFKp6eR8a6P",
+      "owner_key": "D5UtomQnhy8A92LMKjPKDfFe64QAMq4AvS4bVxEQkboT9aHF1kt",
+      "active_key": "D5UtomQnhy8A92LMKjPKDfFe64QAMq4AvS4bVxEQkboT9aHF1kt",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator11",
-      "owner_key": "D6A7LxoGC7ajgTVsPSW5HbG9js5Jtg28xMewsPh19bDt6B4s9KP",
-      "active_key": "D6A7LxoGC7ajgTVsPSW5HbG9js5Jtg28xMewsPh19bDt6B4s9KP",
+      "owner_key": "D8GQE6YJ9QfmtuVUugxvffrMYoHWxeBDHzsgiqT1AZd8pQXjaQb",
+      "active_key": "D8GQE6YJ9QfmtuVUugxvffrMYoHWxeBDHzsgiqT1AZd8pQXjaQb",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator12",
-      "owner_key": "D7fzVWBEiiEVNVKRn7snkdz4KV3KyTEWLffmr3t3vuAuMB7QvKC",
-      "active_key": "D7fzVWBEiiEVNVKRn7snkdz4KV3KyTEWLffmr3t3vuAuMB7QvKC",
+      "owner_key": "D7uhN9Mj5sFr9Q2kw3AGCukdPVthHZpVZCWoyvhTiPv2drW7JsJ",
+      "active_key": "D7uhN9Mj5sFr9Q2kw3AGCukdPVthHZpVZCWoyvhTiPv2drW7JsJ",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator13",
-      "owner_key": "D8JgKWd7mtuBzXubNQEAidgHkFWUekUYn43chpzaDeoVdYodvs1",
-      "active_key": "D8JgKWd7mtuBzXubNQEAidgHkFWUekUYn43chpzaDeoVdYodvs1",
+      "owner_key": "D6CCBkQRVUgjYkM4v4jyqVnsTTYgATct9AF2uYy9KTXqc452QZV",
+      "active_key": "D6CCBkQRVUgjYkM4v4jyqVnsTTYgATct9AF2uYy9KTXqc452QZV",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator14",
-      "owner_key": "D6kMjngPN6hesjDx6AHZC9HJ5HdeCZruv3iqWF7QDQDqEAAm5pY",
-      "active_key": "D6kMjngPN6hesjDx6AHZC9HJ5HdeCZruv3iqWF7QDQDqEAAm5pY",
+      "owner_key": "D6Lfk4vM8yXGfNMahXWY6uhPctfo3LhFsreUJXWCsXtHBx9cs9g",
+      "active_key": "D6Lfk4vM8yXGfNMahXWY6uhPctfo3LhFsreUJXWCsXtHBx9cs9g",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator15",
-      "owner_key": "D8j2J6yebL1btHDM6Zsc4ErMpjogdmkA8gw81QsY3CkaPRV3fEA",
-      "active_key": "D8j2J6yebL1btHDM6Zsc4ErMpjogdmkA8gw81QsY3CkaPRV3fEA",
+      "owner_key": "D82vkTwbDKjk3Ca5oJvArK4dJUcrkwPQcrWvK2gkUEgEA5sdNJm",
+      "active_key": "D82vkTwbDKjk3Ca5oJvArK4dJUcrkwPQcrWvK2gkUEgEA5sdNJm",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator16",
-      "owner_key": "D56tiwKWAMqTqdtcipYfiyGZBU8nxZFJL4K5919ocry4d2XTk2Q",
-      "active_key": "D56tiwKWAMqTqdtcipYfiyGZBU8nxZFJL4K5919ocry4d2XTk2Q",
+      "owner_key": "D5hrUMTqjiLEU3vo8tHYJNc2JbLM9avAPevPfgnGbeBba37jubd",
+      "active_key": "D5hrUMTqjiLEU3vo8tHYJNc2JbLM9avAPevPfgnGbeBba37jubd",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator17",
-      "owner_key": "D575YsWNY7XAcno2HYePVozypLtHx1WnhUHbwSfY7ZXTZp3C4EL",
-      "active_key": "D575YsWNY7XAcno2HYePVozypLtHx1WnhUHbwSfY7ZXTZp3C4EL",
+      "owner_key": "D7kd5M3DHAKgXTazSHr4Wf2kU3L17HvBQXT6UiMWzng7rgo4kSv",
+      "active_key": "D7kd5M3DHAKgXTazSHr4Wf2kU3L17HvBQXT6UiMWzng7rgo4kSv",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator18",
-      "owner_key": "D73WdKoccTrz1zbiw4jr5DP2WCvRXRMNEihWCbTdaE1LNr5zS7A",
-      "active_key": "D73WdKoccTrz1zbiw4jr5DP2WCvRXRMNEihWCbTdaE1LNr5zS7A",
+      "owner_key": "D5RaRtAUxJdbCh1MHTVPxniaUCvueZXoKUhnrTv6nfe8GMcfrgG",
+      "active_key": "D5RaRtAUxJdbCh1MHTVPxniaUCvueZXoKUhnrTv6nfe8GMcfrgG",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator19",
-      "owner_key": "D8deYZdnmhDVuc6HyUmxuApdJ9ECMFjT3nJk9JBCSfNCk9636Wm",
-      "active_key": "D8deYZdnmhDVuc6HyUmxuApdJ9ECMFjT3nJk9JBCSfNCk9636Wm",
+      "owner_key": "D624JNMnAeWZAqiMsZtdg6izxMPx5Bse1ccuJsKiMrEmbPDu3ZY",
+      "active_key": "D624JNMnAeWZAqiMsZtdg6izxMPx5Bse1ccuJsKiMrEmbPDu3ZY",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator20",
-      "owner_key": "D6gLM2oGrGWtRvMsCrAQ64pBzDJFdfyypUP1DnvgerHY2YQ12AZ",
-      "active_key": "D6gLM2oGrGWtRvMsCrAQ64pBzDJFdfyypUP1DnvgerHY2YQ12AZ",
+      "owner_key": "D5miTvs42fFbNm7gC27bfZDC9sTpMoSf3q3d929MSzVawGPoCYm",
+      "active_key": "D5miTvs42fFbNm7gC27bfZDC9sTpMoSf3q3d929MSzVawGPoCYm",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator21",
-      "owner_key": "D6tQVc6MALKRb3MRrzcHhRwdh3WHYRSaKDfrMb1jrmCbLKFeGQh",
-      "active_key": "D6tQVc6MALKRb3MRrzcHhRwdh3WHYRSaKDfrMb1jrmCbLKFeGQh",
+      "owner_key": "D7Kp733GfNhBG4EhnSxT13DWTv3QzQSTdLKxqQm42E8AXteA4aA",
+      "active_key": "D7Kp733GfNhBG4EhnSxT13DWTv3QzQSTdLKxqQm42E8AXteA4aA",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator22",
-      "owner_key": "D7r4zxxptDnavEYdsnWXogNopx5rq1echM1AwRxWHo82MDX8MGY",
-      "active_key": "D7r4zxxptDnavEYdsnWXogNopx5rq1echM1AwRxWHo82MDX8MGY",
+      "owner_key": "D7rmYw112SLGXbgU6eofaob9hR45m4oHxVSTMqS4jW3VA5yYHPG",
+      "active_key": "D7rmYw112SLGXbgU6eofaob9hR45m4oHxVSTMqS4jW3VA5yYHPG",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator23",
-      "owner_key": "D6Uqg4vyByqo6YMts99p7mx1RdLJ1Mq399wiaPW9oWM1TpkPVeq",
-      "active_key": "D6Uqg4vyByqo6YMts99p7mx1RdLJ1Mq399wiaPW9oWM1TpkPVeq",
+      "owner_key": "D5WWxdHiuhZFBDgHnkaWKsv2KR7BnhJDC7ZhJJPWqnirgoD7ghY",
+      "active_key": "D5WWxdHiuhZFBDgHnkaWKsv2KR7BnhJDC7ZhJJPWqnirgoD7ghY",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "senator24",
-      "owner_key": "D5aKSAkveMQfhRCiiKhehuUcPT6XhMSFztwWUxgsmvhUQuaZahd",
-      "active_key": "D5aKSAkveMQfhRCiiKhehuUcPT6XhMSFztwWUxgsmvhUQuaZahd",
+      "owner_key": "D5viJBHEN3nmQZT3cZFtsTk8T4kzPUkskAngn2qyeuZMGhCB8vp",
+      "active_key": "D5viJBHEN3nmQZT3cZFtsTk8T4kzPUkskAngn2qyeuZMGhCB8vp",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director0",
-      "owner_key": "D6oPx4sMdsaDscjdQgHqJdwwP7DwHQN7zfoYo6zHY1PQiH4scKn",
-      "active_key": "D6oPx4sMdsaDscjdQgHqJdwwP7DwHQN7zfoYo6zHY1PQiH4scKn",
+      "owner_key": "D7dX45Ms5YUvo6rwCcf4ZbLTj1fQr5m9NqBbpyvphue4xwJZv6x",
+      "active_key": "D7dX45Ms5YUvo6rwCcf4ZbLTj1fQr5m9NqBbpyvphue4xwJZv6x",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director1",
-      "owner_key": "D5iZUc7881X2bVLSdg9pBTNLjuTrhbYiGnD3qyoP58VKx52FTsU",
-      "active_key": "D5iZUc7881X2bVLSdg9pBTNLjuTrhbYiGnD3qyoP58VKx52FTsU",
+      "owner_key": "D5bkF2XTKugJo3UpRREYwj2pU62pQxR3RRmKxhaxo4wiCY6v4aC",
+      "active_key": "D5bkF2XTKugJo3UpRREYwj2pU62pQxR3RRmKxhaxo4wiCY6v4aC",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director2",
-      "owner_key": "D7rM8iG6fD8v9dVeLwvMyLeehRRvq3Hc59AHhMmUZX662iUGG2N",
-      "active_key": "D7rM8iG6fD8v9dVeLwvMyLeehRRvq3Hc59AHhMmUZX662iUGG2N",
+      "owner_key": "D8g6p4rJYmg1sWnWqg4LEtU9tpEpvevg5T7PBfpEFexAgffwyTK",
+      "active_key": "D8g6p4rJYmg1sWnWqg4LEtU9tpEpvevg5T7PBfpEFexAgffwyTK",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director3",
-      "owner_key": "D6bt4WcV14KrR6NzhDsbJsHVHqrEuFLZr8pi2Jv1uiAVzut66k3",
-      "active_key": "D6bt4WcV14KrR6NzhDsbJsHVHqrEuFLZr8pi2Jv1uiAVzut66k3",
+      "owner_key": "D5hefhHHzxSJmSkBZGcfeqYCyGxyoAevkUjMiNDWPn5VQB3p8sV",
+      "active_key": "D5hefhHHzxSJmSkBZGcfeqYCyGxyoAevkUjMiNDWPn5VQB3p8sV",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director4",
-      "owner_key": "D58h1fXTXgQ4seM6ePMjXNL2pgE952S7xLrrQfjqrkWyqRqqXaE",
-      "active_key": "D58h1fXTXgQ4seM6ePMjXNL2pgE952S7xLrrQfjqrkWyqRqqXaE",
+      "owner_key": "D72AcooYuKjx5mHkexvC6a2uDxqaCJtgYRrzY2rrFPGkyXx8Vk3",
+      "active_key": "D72AcooYuKjx5mHkexvC6a2uDxqaCJtgYRrzY2rrFPGkyXx8Vk3",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director5",
-      "owner_key": "D6aCvAcs6VZ2ywML98G9oP6ny1mR1XYaSfMAPQa1R4kADCHHRyX",
-      "active_key": "D6aCvAcs6VZ2ywML98G9oP6ny1mR1XYaSfMAPQa1R4kADCHHRyX",
+      "owner_key": "D6Vs9F3jwi5dwYK8GX4SiJJMX9joUS41AxaxCv8fJWvX7pXdES6",
+      "active_key": "D6Vs9F3jwi5dwYK8GX4SiJJMX9joUS41AxaxCv8fJWvX7pXdES6",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director6",
-      "owner_key": "D67jEKC92rWngaGeTtxfuX1ANTUc8T6KozamW3ywRMgYSvFJx2n",
-      "active_key": "D67jEKC92rWngaGeTtxfuX1ANTUc8T6KozamW3ywRMgYSvFJx2n",
+      "owner_key": "D6WXvhT73eZHxbHjqsSmgLsoaKhb6PwbQTCE4iinfEqGBFM5dx6",
+      "active_key": "D6WXvhT73eZHxbHjqsSmgLsoaKhb6PwbQTCE4iinfEqGBFM5dx6",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director7",
-      "owner_key": "D7oM3YEJ8g7viwMex6BQcJATgppBMW9Aftng29SFvAMvR2VkENs",
-      "active_key": "D7oM3YEJ8g7viwMex6BQcJATgppBMW9Aftng29SFvAMvR2VkENs",
+      "owner_key": "D7pXEXyiU3UNxAi5LqJfxhumxH6wQwB2Lvsb5UWYNXUL4Nir9jt",
+      "active_key": "D7pXEXyiU3UNxAi5LqJfxhumxH6wQwB2Lvsb5UWYNXUL4Nir9jt",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director8",
-      "owner_key": "D5gXoeoE4Sdt93KzzfCbbkL99vejJjSf9f7r242XftNxVt9RfM9",
-      "active_key": "D5gXoeoE4Sdt93KzzfCbbkL99vejJjSf9f7r242XftNxVt9RfM9",
+      "owner_key": "D55EL8ze8cc4Fu7EhHhVs883VB1fTshpmiXaYiRkEYNy2pdTXFg",
+      "active_key": "D55EL8ze8cc4Fu7EhHhVs883VB1fTshpmiXaYiRkEYNy2pdTXFg",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director9",
-      "owner_key": "D81DWVE9sZvAcASig3ToSHAJn5MEJzPqoYyFVoSSkuikUDUp5W3",
-      "active_key": "D81DWVE9sZvAcASig3ToSHAJn5MEJzPqoYyFVoSSkuikUDUp5W3",
+      "owner_key": "D4vcWDgGFDfdsmaKiNrLfzvPcFspxWFuUHZkDNkRzJcwdRM9vzG",
+      "active_key": "D4vcWDgGFDfdsmaKiNrLfzvPcFspxWFuUHZkDNkRzJcwdRM9vzG",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director10",
-      "owner_key": "D6foV3HCcivfuFr5aGo7Y9qXR96YaC82HmxDcCvQuHAo8qtEwfp",
-      "active_key": "D6foV3HCcivfuFr5aGo7Y9qXR96YaC82HmxDcCvQuHAo8qtEwfp",
+      "owner_key": "D6rZbaTHW1mRnbb4Gd7WJMwVt5UQcvh6qjmgrn851sAAzpxnSwj",
+      "active_key": "D6rZbaTHW1mRnbb4Gd7WJMwVt5UQcvh6qjmgrn851sAAzpxnSwj",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director11",
-      "owner_key": "D5FKTEoWDPr75TvbuH7tQTwjH9TaA3PaveZWSUR7JZUi7kjQ1So",
-      "active_key": "D5FKTEoWDPr75TvbuH7tQTwjH9TaA3PaveZWSUR7JZUi7kjQ1So",
+      "owner_key": "D7LqSQU84mxEi3ARecf9aY52A8HrhjpjGM7spJKZMUdgpDaGVha",
+      "active_key": "D7LqSQU84mxEi3ARecf9aY52A8HrhjpjGM7spJKZMUdgpDaGVha",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director12",
-      "owner_key": "D7wCLxrcNKF2cE1KtZPVWmGS4FmhEbX4zwLzhFxPpu2v9Kygzjo",
-      "active_key": "D7wCLxrcNKF2cE1KtZPVWmGS4FmhEbX4zwLzhFxPpu2v9Kygzjo",
+      "owner_key": "D7E3aTVWaeHiiwurBE9nFqDNxWtJkKkCB6DFbAHGJbngsGnbTFX",
+      "active_key": "D7E3aTVWaeHiiwurBE9nFqDNxWtJkKkCB6DFbAHGJbngsGnbTFX",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director13",
-      "owner_key": "D5YFyxjfWPwM5B9EtDSPypZKbTfvdbj2AEUFMYsSjc335eGJXTr",
-      "active_key": "D5YFyxjfWPwM5B9EtDSPypZKbTfvdbj2AEUFMYsSjc335eGJXTr",
+      "owner_key": "D5Vdtqex3v4ZDHVkPryFYj9chFLd1nCxESJpxEBWyvThdhHYDhz",
+      "active_key": "D5Vdtqex3v4ZDHVkPryFYj9chFLd1nCxESJpxEBWyvThdhHYDhz",
       "is_lifetime_member": true
-    },
-    {
+    },{
       "name": "director14",
-      "owner_key": "D7D4mnDVGNy6NPbHE6HJoe4zpunGRkEAUfSLwf1uBk5hGbHWc2y",
-      "active_key": "D7D4mnDVGNy6NPbHE6HJoe4zpunGRkEAUfSLwf1uBk5hGbHWc2y",
+      "owner_key": "D8emLUEWxsborK2mGXo2c4Ti5PdPbwrQmLW9vhymXcxhcZ6MtUN",
+      "active_key": "D8emLUEWxsborK2mGXo2c4Ti5PdPbwrQmLW9vhymXcxhcZ6MtUN",
       "is_lifetime_member": true
+    },{
+      "name": "DFD",
+      "owner_key": "D7KDqfbe9LPZ42kvUn3R7hfbWkp3NQ1CY2P3J8fAz3XvKiuHgBp",
+      "active_key": "D7KDqfbe9LPZ42kvUn3R7hfbWkp3NQ1CY2P3J8fAz3XvKiuHgBp",
+      "is_lifetime_member": false
     }
   ],
   "initial_assets": [],
   "initial_balances": [{
-      "owner": "DAQ2LP5DzXr1JMVWUEqQYfgniFPqjwMeNj",
+      "owner": "DHTxHD3FiXKgtHk2NtgRWEvKAZddi5uKhk",
       "asset_symbol": "DFD",
-      "amount": "840000000000"
+      "amount": "8400000000000"
     }
   ],
   "initial_vesting_balances": [],
   "initial_active_miners": 25,
   "initial_miner_candidates": [{
       "owner_name": "senator0",
-      "block_signing_key": "D5UMdRR6GvT1SjJnLbWYRaXahTNRmYJwo5y8TGZphuYkWYrBrjg"
+      "block_signing_key": "D5nz4TjxBsBuhJDzqPixq43ypzPbc364ETAwWSRW36BversX8gx"
     },{
       "owner_name": "senator1",
-      "block_signing_key": "D6nafz3HUWVTuhXZDYSjFtbJXmLH4CWCTqUAkNY2iP8Y7YVvrcw"
+      "block_signing_key": "D8bt9geCSd48PFJZ6GqiNFnaQnhPbP5uiAmY9fjKVHkU6YE38Pi"
     },{
       "owner_name": "senator2",
-      "block_signing_key": "D8hPqqqyjHKVqgJiJGneXi6D8QgATzdQG4QQv68frU1bMqWmNPQ"
+      "block_signing_key": "D74nRzqoaGpJ1JjyihB63RktQXSuD76y3ZXXMy6puELggat8qxk"
     },{
       "owner_name": "senator3",
-      "block_signing_key": "D5xRt7CfpwjJRSwqss1gVT988s79XtCZV9YQa9dgDSV1f54d4ui"
+      "block_signing_key": "D5zttJt3aSBct5AtSShPQCRCkip4TKAtHGmxoayqoBiRoysDa3k"
     },{
       "owner_name": "senator4",
-      "block_signing_key": "D5FZLZfMip13rHpYsjNKmuzTfbVCihnA7kivhN36As5WWMK3MC2"
+      "block_signing_key": "D6AhnWywmJD4QQRpEqT1ZfdMhQyJG8rHDYy6w35C27QtzwpGrkJ"
     },{
       "owner_name": "senator5",
-      "block_signing_key": "D5w8hLyGrchHKnXckSKRXhojbYEgWvKeJjjsEz9U8TBXTzjToEX"
+      "block_signing_key": "D7SNjCseSVQ6mmGnKoJkVfKVqKSF2ksAdUTcGRL5gSHv2nBQRgC"
     },{
       "owner_name": "senator6",
-      "block_signing_key": "D5Z1b8rZYxwRNrshrX2qyDLBdfATKzrM3rn5yxFVHNVmtLaTWFm"
+      "block_signing_key": "D8ZGyR6WnH6B9fcnPWsFgaVbXMGuFL2oJxQwDY3GT8GwFAnBtYc"
     },{
       "owner_name": "senator7",
-      "block_signing_key": "D8ek9LASqeajB5JdNnVhYAcRJ127tfokBsDVQyFzkULFQyeAyGP"
+      "block_signing_key": "D6wC3GdLyxwVqyo481j35Rp5v9UxqLQgJzMR3sCkKTdQPDd6ALJ"
     },{
       "owner_name": "senator8",
-      "block_signing_key": "D5rLQ3T5ME7gLwiqi1oRSpT9JVEthZ3zzmsPzxcnGnxk6DiXqgE"
+      "block_signing_key": "D6jNuJyaUvCnwfhvcEWXwgRvBpLiPfyEutY2gi61cryv7VCFUrS"
     },{
       "owner_name": "senator9",
-      "block_signing_key": "D5SJgbdeXGhwevePTUdD8ypEqavWh72fyhZn2fVQuU5fG5icDRU"
+      "block_signing_key": "D6f4m2owkzpYCygu7JSBQTv2CJxhN65rVAL1EijWd4k66oWQgKU"
     },{
       "owner_name": "senator10",
-      "block_signing_key": "D81Qw37P9wGrQ7coYpqMXHEH97KYyhxpGC2oc5wbnFKp6eR8a6P"
+      "block_signing_key": "D5UtomQnhy8A92LMKjPKDfFe64QAMq4AvS4bVxEQkboT9aHF1kt"
     },{
       "owner_name": "senator11",
-      "block_signing_key": "D6A7LxoGC7ajgTVsPSW5HbG9js5Jtg28xMewsPh19bDt6B4s9KP"
+      "block_signing_key": "D8GQE6YJ9QfmtuVUugxvffrMYoHWxeBDHzsgiqT1AZd8pQXjaQb"
     },{
       "owner_name": "senator12",
-      "block_signing_key": "D7fzVWBEiiEVNVKRn7snkdz4KV3KyTEWLffmr3t3vuAuMB7QvKC"
+      "block_signing_key": "D7uhN9Mj5sFr9Q2kw3AGCukdPVthHZpVZCWoyvhTiPv2drW7JsJ"
     },{
       "owner_name": "senator13",
-      "block_signing_key": "D8JgKWd7mtuBzXubNQEAidgHkFWUekUYn43chpzaDeoVdYodvs1"
+      "block_signing_key": "D6CCBkQRVUgjYkM4v4jyqVnsTTYgATct9AF2uYy9KTXqc452QZV"
     },{
       "owner_name": "senator14",
-      "block_signing_key": "D6kMjngPN6hesjDx6AHZC9HJ5HdeCZruv3iqWF7QDQDqEAAm5pY"
+      "block_signing_key": "D6Lfk4vM8yXGfNMahXWY6uhPctfo3LhFsreUJXWCsXtHBx9cs9g"
     },{
       "owner_name": "senator15",
-      "block_signing_key": "D8j2J6yebL1btHDM6Zsc4ErMpjogdmkA8gw81QsY3CkaPRV3fEA"
+      "block_signing_key": "D82vkTwbDKjk3Ca5oJvArK4dJUcrkwPQcrWvK2gkUEgEA5sdNJm"
     },{
       "owner_name": "senator16",
-      "block_signing_key": "D56tiwKWAMqTqdtcipYfiyGZBU8nxZFJL4K5919ocry4d2XTk2Q"
+      "block_signing_key": "D5hrUMTqjiLEU3vo8tHYJNc2JbLM9avAPevPfgnGbeBba37jubd"
     },{
       "owner_name": "senator17",
-      "block_signing_key": "D575YsWNY7XAcno2HYePVozypLtHx1WnhUHbwSfY7ZXTZp3C4EL"
+      "block_signing_key": "D7kd5M3DHAKgXTazSHr4Wf2kU3L17HvBQXT6UiMWzng7rgo4kSv"
     },{
       "owner_name": "senator18",
-      "block_signing_key": "D73WdKoccTrz1zbiw4jr5DP2WCvRXRMNEihWCbTdaE1LNr5zS7A"
+      "block_signing_key": "D5RaRtAUxJdbCh1MHTVPxniaUCvueZXoKUhnrTv6nfe8GMcfrgG"
     },{
       "owner_name": "senator19",
-      "block_signing_key": "D8deYZdnmhDVuc6HyUmxuApdJ9ECMFjT3nJk9JBCSfNCk9636Wm"
+      "block_signing_key": "D624JNMnAeWZAqiMsZtdg6izxMPx5Bse1ccuJsKiMrEmbPDu3ZY"
     },{
       "owner_name": "senator20",
-      "block_signing_key": "D6gLM2oGrGWtRvMsCrAQ64pBzDJFdfyypUP1DnvgerHY2YQ12AZ"
+      "block_signing_key": "D5miTvs42fFbNm7gC27bfZDC9sTpMoSf3q3d929MSzVawGPoCYm"
     },{
       "owner_name": "senator21",
-      "block_signing_key": "D6tQVc6MALKRb3MRrzcHhRwdh3WHYRSaKDfrMb1jrmCbLKFeGQh"
+      "block_signing_key": "D7Kp733GfNhBG4EhnSxT13DWTv3QzQSTdLKxqQm42E8AXteA4aA"
     },{
       "owner_name": "senator22",
-      "block_signing_key": "D7r4zxxptDnavEYdsnWXogNopx5rq1echM1AwRxWHo82MDX8MGY"
+      "block_signing_key": "D7rmYw112SLGXbgU6eofaob9hR45m4oHxVSTMqS4jW3VA5yYHPG"
     },{
       "owner_name": "senator23",
-      "block_signing_key": "D6Uqg4vyByqo6YMts99p7mx1RdLJ1Mq399wiaPW9oWM1TpkPVeq"
+      "block_signing_key": "D5WWxdHiuhZFBDgHnkaWKsv2KR7BnhJDC7ZhJJPWqnirgoD7ghY"
     },{
       "owner_name": "senator24",
-      "block_signing_key": "D5aKSAkveMQfhRCiiKhehuUcPT6XhMSFztwWUxgsmvhUQuaZahd"
+      "block_signing_key": "D5viJBHEN3nmQZT3cZFtsTk8T4kzPUkskAngn2qyeuZMGhCB8vp"
     }
   ],
   "initial_guard_candidates": [{
