@@ -297,6 +297,14 @@ namespace graphene { namespace app {
        return fc::future<fc::variant>(prom).wait();
     }
 
+	transaction_id_type network_broadcast_api::broadcast_transaction_asynchronous(const  signed_transaction& trx)
+	{
+		trx.validate();
+		_app.chain_database()->push_transaction(trx, 0);
+		_app.p2p_node()->broadcast_transaction(trx);
+		return trx.id();
+	}
+
     void network_broadcast_api::broadcast_block( const signed_block& b )
     {
        _app.chain_database()->push_block(b);

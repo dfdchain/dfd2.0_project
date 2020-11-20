@@ -221,6 +221,7 @@ namespace graphene { namespace app {
           */
          fc::variant broadcast_transaction_synchronous(const signed_transaction& trx);
 
+		 transaction_id_type broadcast_transaction_asynchronous(const  signed_transaction& trx);
          void broadcast_block( const signed_block& block );
 
          /**
